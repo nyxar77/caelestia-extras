@@ -12,7 +12,9 @@ type Config struct {
 	Scheme      Scheme       `toml:"scheme"`
 	Cursor      *Cursor      `toml:"cursor"`
 	GTK         *GTK         `toml:"gtk"`
+	Hyprtoolkit *Hyprtoolkit `toml:"hyprtoolkit"`
 	Pavucontrol *Pavucontrol `toml:"pavucontrol"`
+	Portal      *Portal      `toml:"portal"`
 }
 
 type Scheme struct {
@@ -35,8 +37,21 @@ type GTK struct {
 	LightTheme string `toml:"light_theme"`
 }
 
+type Hyprtoolkit struct {
+	ThemeDir   string `toml:"theme_dir"`
+	ConfigFile string `toml:"config_file"`
+}
+
 type Pavucontrol struct {
 	Command string `toml:"command"`
+}
+
+type Portal struct {
+	ThemeDir       string `toml:"theme_dir"`
+	ConfigHome     string `toml:"config_home"`
+	DataHome       string `toml:"data_home"`
+	ThemeName      string `toml:"theme_name"`
+	ApplyGlobalGTK bool   `toml:"apply_global_gtk"`
 }
 
 func DefaultPath() string {
@@ -84,8 +99,30 @@ func Load(path string) (Config, error) {
 			config.GTK.LightTheme = "adw-gtk3"
 		}
 	}
+	if config.Hyprtoolkit != nil {
+		if config.Hyprtoolkit.ThemeDir == "" {
+			config.Hyprtoolkit.ThemeDir = filepath.Join(xdg("XDG_STATE_HOME", ".local/state"), "caelestia", "theme")
+		}
+		if config.Hyprtoolkit.ConfigFile == "" {
+			config.Hyprtoolkit.ConfigFile = filepath.Join(xdg("XDG_CONFIG_HOME", ".config"), "hypr", "hyprtoolkit.conf")
+		}
+	}
 	if config.Pavucontrol != nil && config.Pavucontrol.Command == "" {
 		config.Pavucontrol.Command = "pavucontrol-qt"
+	}
+	if config.Portal != nil {
+		if config.Portal.ThemeDir == "" {
+			config.Portal.ThemeDir = filepath.Join(xdg("XDG_STATE_HOME", ".local/state"), "caelestia", "theme")
+		}
+		if config.Portal.ConfigHome == "" {
+			config.Portal.ConfigHome = xdg("XDG_CONFIG_HOME", ".config")
+		}
+		if config.Portal.DataHome == "" {
+			config.Portal.DataHome = xdg("XDG_DATA_HOME", ".local/share")
+		}
+		if config.Portal.ThemeName == "" {
+			config.Portal.ThemeName = "Caelestia-Portal"
+		}
 	}
 	return config, nil
 }
