@@ -747,6 +747,74 @@ in {
     @define-color theme_unfocused_selected_bg_color alpha(#{{ secondary.hex }}, 0.28);
     @define-color theme_unfocused_selected_fg_color #{{ onSurface.hex }};
 
+    /*
+      Keep GTK's native geometry and interaction model, but make the active
+      Caelestia palette visible in ordinary GTK applications.
+    */
+    window,
+    dialog,
+    .background {
+      color: @window_fg_color;
+      background-color: @window_bg_color;
+    }
+
+    headerbar,
+    .titlebar {
+      color: @headerbar_fg_color;
+      background-color: @headerbar_bg_color;
+      background-image: linear-gradient(to bottom, alpha(@accent_color, 0.10), transparent 48%);
+      border-bottom-color: @headerbar_border_color;
+    }
+
+    .sidebar,
+    placessidebar,
+    .navigation-sidebar {
+      color: @sidebar_fg_color;
+      background-color: @sidebar_bg_color;
+      border-color: @sidebar_border_color;
+    }
+
+    view,
+    textview,
+    treeview,
+    list {
+      color: @view_fg_color;
+      background-color: @view_bg_color;
+    }
+
+    button,
+    entry,
+    combobox button,
+    spinbutton {
+      color: @window_fg_color;
+      background-color: @card_bg_color;
+      border-color: @borders;
+    }
+
+    button:hover,
+    button:focus-visible,
+    entry:focus,
+    combobox button:hover,
+    spinbutton:focus {
+      background-color: @popover_bg_color;
+      border-color: @accent_color;
+    }
+
+    button:checked,
+    button:active,
+    row:selected,
+    treeview.view:selected,
+    textview text selection,
+    entry selection {
+      color: @theme_selected_fg_color;
+      background-color: @theme_selected_bg_color;
+    }
+
+    row:hover,
+    treeview.view:hover {
+      background-color: alpha(@accent_color, 0.10);
+    }
+
   '';
 
   xdg.configFile."caelestia/templates/gtk.css".text = ''
