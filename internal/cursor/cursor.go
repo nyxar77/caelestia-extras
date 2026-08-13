@@ -59,6 +59,9 @@ func Sync(cursor config.Cursor, schemeFile string) error {
 			return err
 		}
 		compiled := filepath.Join(work, "compiled")
+		if err := os.MkdirAll(compiled, 0o755); err != nil {
+			return err
+		}
 		if err := runQuiet("hyprcursor-util", "--create", theme, "--output", compiled); err != nil {
 			return err
 		}
