@@ -1,0 +1,6 @@
+[Unit]
+Description=Refresh the XCursor fallback for Caelestia
+
+[Service]
+Type=oneshot
+ExecStart=caelestia-extras cursor sync-xcursor

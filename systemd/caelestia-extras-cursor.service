@@ -1,0 +1,7 @@
+[Unit]
+Description=Sync cursor with the active Caelestia scheme
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=caelestia-extras cursor sync

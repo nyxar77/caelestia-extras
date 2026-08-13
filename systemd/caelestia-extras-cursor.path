@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch the active Caelestia scheme for cursor updates
+
+[Path]
+PathChanged=%h/.local/state/caelestia/scheme.json
+Unit=caelestia-extras-cursor.service
+
+[Install]
+WantedBy=graphical-session.target
