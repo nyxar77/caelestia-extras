@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch Caelestia Hyprtoolkit output
+
+[Path]
+PathChanged=%h/.local/state/caelestia/theme/hyprtoolkit.conf
+Unit=caelestia-extras-hyprtoolkit.service
+
+[Install]
+WantedBy=graphical-session.target

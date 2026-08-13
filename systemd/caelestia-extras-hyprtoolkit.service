@@ -1,0 +1,7 @@
+[Unit]
+Description=Sync Hyprtoolkit with Caelestia
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=caelestia-extras hyprtoolkit sync
