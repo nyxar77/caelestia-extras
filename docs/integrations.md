@@ -46,9 +46,9 @@ The Home Manager module creates a service for each enabled sync and a path
 watcher for the files that Caelestia updates. It also runs the initial
 Hyprtoolkit and portal sync during activation.
 
-For a manual install, the matching units are in `systemd/`. Copy them to
-`~/.config/systemd/user/`, make sure `caelestia-extras` is in the service
-`PATH`, and enable the `.path` units you need.
+For a manual install, run `scripts/install.sh`. It renders the units with the
+right binary and XDG paths, then manages them through symlinks. Do not copy the
+template files in `systemd/` by hand.
 
 GTK applications that keep an old D-Bus-activated process can be launched
 directly with a Home Manager desktop-entry override:

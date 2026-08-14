@@ -1,0 +1,14 @@
+[compositor]
+backend = "hyprland"
+
+# Add an integration section after filling in its settings.
+# See docs/configuration.md for the available options.
+
+# [cursor]
+# source = "/path/to/Bibata_Cursor/svg/modern"
+# build_config = "/path/to/Bibata_Cursor/configs/normal/x.build.toml"
+
+# [gtk]
+# [hyprtoolkit]
+# [pavucontrol]
+# [portal]

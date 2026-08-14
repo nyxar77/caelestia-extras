@@ -2,7 +2,7 @@
 Description=Watch Caelestia Hyprtoolkit output
 
 [Path]
-PathChanged=%h/.local/state/caelestia/theme/hyprtoolkit.conf
+PathChanged=@THEME_DIR@/hyprtoolkit.conf
 Unit=caelestia-extras-hyprtoolkit.service
 
 [Install]

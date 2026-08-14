@@ -1,0 +1,32 @@
+@define-color accent_color #{{ primary.hex }};
+@define-color accent_bg_color #{{ primary.hex }};
+@define-color accent_fg_color #{{ onPrimary.hex }};
+@define-color window_bg_color #{{ surface.hex }};
+@define-color window_fg_color #{{ onSurface.hex }};
+@define-color view_bg_color #{{ surface.hex }};
+@define-color view_fg_color #{{ onSurface.hex }};
+@define-color headerbar_bg_color #{{ surfaceContainerLow.hex }};
+@define-color headerbar_fg_color #{{ onSurface.hex }};
+@define-color card_bg_color #{{ surfaceContainer.hex }};
+@define-color borders #{{ outlineVariant.hex }};
+
+window,
+dialog,
+.background {
+  color: @window_fg_color;
+  background-color: @window_bg_color;
+}
+
+headerbar,
+.titlebar {
+  color: @headerbar_fg_color;
+  background-color: @headerbar_bg_color;
+  border-bottom-color: @borders;
+}
+
+button,
+entry {
+  color: @window_fg_color;
+  background-color: @card_bg_color;
+  border-color: @borders;
+}

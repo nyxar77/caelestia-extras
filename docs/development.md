@@ -5,6 +5,7 @@ The project is a small Go program with a Nix flake.
 ```sh
 go test ./...
 nix flake check
+tests/install.bash
 ```
 
 The dev shell provides Go and `gofumpt`:
@@ -22,4 +23,5 @@ The main pieces are:
 - `internal/integration` — GTK, Hyprtoolkit, pavucontrol, and portal actions
 - `internal/scheme` — Caelestia scheme parsing
 - `nix/` — package and Home Manager module
-- `systemd/` — standalone user units
+- `systemd/` — standalone user-unit templates
+- `scripts/install.sh` — manual install and update entry point

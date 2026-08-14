@@ -2,7 +2,7 @@
 Description=Watch the active Caelestia scheme for cursor updates
 
 [Path]
-PathChanged=%h/.local/state/caelestia/scheme.json
+PathChanged=@SCHEME_FILE@
 Unit=caelestia-extras-cursor.service
 
 [Install]

@@ -4,4 +4,4 @@ After=graphical-session.target
 
 [Service]
 Type=oneshot
-ExecStart=caelestia-extras portal sync
+ExecStart="@BINARY@" --config "@CONFIG_FILE@" portal sync

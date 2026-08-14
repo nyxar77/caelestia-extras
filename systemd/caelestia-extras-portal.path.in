@@ -1,0 +1,12 @@
+[Unit]
+Description=Watch Caelestia portal theme output
+
+[Path]
+PathChanged=@THEME_DIR@/gtk-portal.css
+PathChanged=@THEME_DIR@/gtk-global.css
+PathChanged=@THEME_DIR@/qt6ct-caelestia.conf
+PathChanged=@THEME_DIR@/qt6ct-portal.qss
+Unit=caelestia-extras-portal.service
+
+[Install]
+WantedBy=graphical-session.target

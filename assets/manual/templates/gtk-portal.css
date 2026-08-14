@@ -1,0 +1,42 @@
+@import url("base-{{ mode }}.css");
+
+@define-color portal_accent #{{ primary.hex }};
+@define-color portal_accent_fg #{{ onPrimary.hex }};
+@define-color portal_bg #{{ surface.hex }};
+@define-color portal_fg #{{ onSurface.hex }};
+@define-color portal_panel #{{ surfaceContainer.hex }};
+@define-color portal_border #{{ outlineVariant.hex }};
+
+window,
+filechooser {
+  color: @portal_fg;
+  background-color: @portal_bg;
+}
+
+headerbar,
+.titlebar {
+  color: @portal_fg;
+  background-color: @portal_panel;
+  border-bottom: 1px solid @portal_border;
+}
+
+button,
+entry,
+combobox button {
+  color: @portal_fg;
+  background-color: @portal_panel;
+  border-color: @portal_border;
+}
+
+button:hover,
+button:focus,
+entry:focus {
+  border-color: @portal_accent;
+}
+
+button.suggested-action,
+button.default {
+  color: @portal_accent_fg;
+  background-color: @portal_accent;
+  border-color: @portal_accent;
+}

@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch the active Caelestia scheme for GTK updates
+
+[Path]
+PathChanged=@SCHEME_FILE@
+Unit=caelestia-extras-gtk.service
+
+[Install]
+WantedBy=graphical-session.target

@@ -1,0 +1,19 @@
+QWidget {
+  color: #{{ onSurface.hex }};
+  background-color: #{{ surface.hex }};
+}
+
+QPushButton,
+QComboBox,
+QLineEdit {
+  color: #{{ onSurface.hex }};
+  background-color: #{{ surfaceContainer.hex }};
+  border: 1px solid #{{ outlineVariant.hex }};
+}
+
+QPushButton:hover,
+QPushButton:checked {
+  color: #{{ onPrimary.hex }};
+  background-color: #{{ primary.hex }};
+  border-color: #{{ primary.hex }};
+}

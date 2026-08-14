@@ -3,4 +3,4 @@ Description=Refresh the XCursor fallback for Caelestia
 
 [Service]
 Type=oneshot
-ExecStart=caelestia-extras cursor sync-xcursor
+ExecStart="@BINARY@" --config "@CONFIG_FILE@" cursor sync-xcursor
