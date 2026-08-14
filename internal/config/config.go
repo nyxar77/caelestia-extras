@@ -1,9 +1,12 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/pelletier/go-toml/v2"
 )
@@ -125,6 +128,102 @@ func Load(path string) (Config, error) {
 		}
 	}
 	return config, nil
+}
+
+// Validate checks the files and external commands needed by the enabled
+// integrations. It does not require generated theme output to exist yet.
+func (c Config) Validate() error {
+	var problems []string
+	enabled := 0
+
+	needsScheme := c.Cursor != nil || c.GTK != nil
+	if needsScheme {
+		if err := regularFile(c.Scheme.File, "scheme file"); err != nil {
+			problems = append(problems, err.Error())
+		}
+	}
+
+	if c.Cursor != nil {
+		enabled++
+		if err := directory(c.Cursor.Source, "cursor source"); err != nil {
+			problems = append(problems, err.Error())
+		}
+		if err := regularFile(c.Cursor.BuildConfig, "cursor build config"); err != nil {
+			problems = append(problems, err.Error())
+		}
+		for _, command := range []string{"hyprcursor-util", "hyprctl"} {
+			if err := commandAvailable(command); err != nil {
+				problems = append(problems, err.Error())
+			}
+		}
+		if c.Cursor.UpdateGTK {
+			if err := commandAvailable("dconf"); err != nil {
+				problems = append(problems, err.Error())
+			}
+		}
+		if c.Cursor.XCursorFallback {
+			for _, command := range []string{"cbmp", "ctgen"} {
+				if err := commandAvailable(command); err != nil {
+					problems = append(problems, err.Error())
+				}
+			}
+		}
+	}
+
+	if c.GTK != nil {
+		enabled++
+		if err := commandAvailable("dconf"); err != nil {
+			problems = append(problems, err.Error())
+		}
+	}
+	if c.Hyprtoolkit != nil {
+		enabled++
+	}
+	if c.Pavucontrol != nil {
+		enabled++
+		if err := commandAvailable(c.Pavucontrol.Command); err != nil {
+			problems = append(problems, err.Error())
+		}
+	}
+	if c.Portal != nil {
+		enabled++
+	}
+	if enabled == 0 {
+		problems = append(problems, "no integrations are enabled")
+	}
+	if len(problems) == 0 {
+		return nil
+	}
+	return errors.New("configuration validation failed:\n- " + strings.Join(problems, "\n- "))
+}
+
+func regularFile(path, label string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("%s %q is not available: %w", label, path, err)
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("%s %q is not a regular file", label, path)
+	}
+	return nil
+}
+
+func directory(path, label string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("%s %q is not available: %w", label, path, err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("%s %q is not a directory", label, path)
+	}
+	return nil
+}
+
+func commandAvailable(command string) error {
+	if _, err := exec.LookPath(command); err != nil {
+		return fmt.Errorf("required command %q was not found in PATH", command)
+	}
+	return nil
 }
 
 func xdg(name, fallback string) string {

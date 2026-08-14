@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nyxar77/caelestia-extras/raw/master/config/caelestia-extras.schema.json",
+  "title": "caelestia-extras configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "scheme": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "Path to Caelestia's active scheme JSON file."
+        }
+      }
+    },
+    "cursor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "build_config"],
+      "properties": {
+        "source": {"type": "string", "description": "Bibata SVG source directory."},
+        "build_config": {"type": "string", "description": "Bibata cursor build configuration."},
+        "icon_dir": {"type": "string", "description": "Directory where the generated cursor is installed."},
+        "theme": {"type": "string", "default": "Bibata-Caelestia"},
+        "size": {"type": "integer", "minimum": 1, "default": 20},
+        "xcursor_sizes": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 1},
+          "default": [20, 24, 32]
+        },
+        "xcursor_fallback": {"type": "boolean", "default": false},
+        "update_gtk": {"type": "boolean", "default": false}
+      }
+    },
+    "gtk": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dark_theme": {"type": "string", "default": "adw-gtk3-dark"},
+        "light_theme": {"type": "string", "default": "adw-gtk3"}
+      }
+    },
+    "hyprtoolkit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "theme_dir": {"type": "string", "description": "Directory containing generated Hyprtoolkit output."},
+        "config_file": {"type": "string", "description": "Destination for active Hyprtoolkit configuration."}
+      }
+    },
+    "pavucontrol": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command": {"type": "string", "default": "pavucontrol-qt"}
+      }
+    },
+    "portal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "theme_dir": {"type": "string", "description": "Directory containing generated portal theme files."},
+        "config_home": {"type": "string"},
+        "data_home": {"type": "string"},
+        "theme_name": {"type": "string", "default": "Caelestia-Portal"},
+        "apply_global_gtk": {"type": "boolean", "default": false}
+      }
+    }
+  }
+}

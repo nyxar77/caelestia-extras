@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -59,5 +61,15 @@ func TestExecuteRejectsUnknownCompletionShell(t *testing.T) {
 	err := execute([]string{"completion", "powershell"}, &bytes.Buffer{}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "unsupported shell") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestExecuteConfigValidate(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.toml")
+	if err := os.WriteFile(path, []byte("[hyprtoolkit]\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := execute([]string{"--config", path, "config", "validate"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
 	}
 }

@@ -129,6 +129,8 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 		return runIntegration("launch pavucontrol", func() error {
 			return integration.LaunchPavucontrol(*configFile.Pavucontrol, args[1:])
 		})
+	case "config":
+		return configFile.Validate()
 	case "portal":
 		if configFile.Portal == nil {
 			return fmt.Errorf("portal sync is disabled in %q; add a [portal] section", *configPath)
@@ -140,7 +142,7 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 			return integration.SyncPortal(*configFile.Portal)
 		})
 	default:
-		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, portal, completion, help, or version", args[0]))
+		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, portal, config, completion, help, or version", args[0]))
 	}
 }
 
@@ -159,8 +161,12 @@ func validateCommand(args []string) error {
 		}
 	case "pavucontrol":
 		return nil
+	case "config":
+		if len(args) != 2 || args[1] != "validate" {
+			return usage("config expects: validate")
+		}
 	default:
-		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, portal, completion, help, or version", args[0]))
+		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, portal, config, completion, help, or version", args[0]))
 	}
 	return nil
 }
@@ -199,6 +205,8 @@ func writeHelp(args []string, stdout io.Writer) error {
 		help = portalHelp
 	case "completion":
 		help = completionHelp
+	case "config":
+		help = configHelp
 	default:
 		return usage(fmt.Sprintf("no help available for %q", args[0]))
 	}
@@ -237,6 +245,7 @@ Commands:
   hyprtoolkit sync         Apply generated Hyprtoolkit configuration
   pavucontrol [arguments]  Launch the configured volume mixer
   portal sync              Apply generated portal themes
+  config validate          Check files, tools, and enabled integrations
   completion <shell>       Print shell completion for bash, zsh, or fish
   help [command]           Show general or command-specific help
   version                  Print the version
@@ -289,6 +298,11 @@ Copies generated GTK and Qt assets into the isolated portal configuration.
 Requires a [portal] section in the configuration.
 `
 
+const configHelp = `Usage: caelestia-extras config validate
+
+Checks the configured files, required commands, and enabled integrations.
+`
+
 const completionHelp = `Usage: caelestia-extras completion <shell>
 
 Prints completion scripts for bash, zsh, or fish.
@@ -306,13 +320,13 @@ _caelestia_extras() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   command="${COMP_WORDS[1]}"
   if [[ $COMP_CWORD == 1 ]]; then
-    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol portal completion help version" -- "$cur"))
+    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol portal config completion help version" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == cursor ]]; then
     COMPREPLY=($(compgen -W "sync sync-xcursor" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == completion ]]; then
     COMPREPLY=($(compgen -W "bash zsh fish" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == help ]]; then
-    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol portal completion" -- "$cur"))
+    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol portal config completion" -- "$cur"))
   fi
 }
 complete -F _caelestia_extras caelestia-extras
@@ -323,20 +337,22 @@ const zshCompletion = `#compdef caelestia-extras
 _arguments \
   '(-config 1)'{-config,-config}'[configuration file]:file:_files' \
   '(-version 1)'--version'[show version]' \
-  '1:command:(cursor gtk hyprtoolkit pavucontrol portal completion help version)' \
+  '1:command:(cursor gtk hyprtoolkit pavucontrol portal config completion help version)' \
   '*::argument:->args'
 
 case $words[2] in
   cursor) _arguments '1:action:(sync sync-xcursor)' ;;
   completion) _arguments '1:shell:(bash zsh fish)' ;;
-  help) _arguments '1:command:(cursor gtk hyprtoolkit pavucontrol portal completion)' ;;
+  help) _arguments '1:command:(cursor gtk hyprtoolkit pavucontrol portal config completion)' ;;
+  config) _arguments '1:action:(validate)' ;;
 esac
 `
 
-const fishCompletion = `complete -c caelestia-extras -f -n '__fish_use_subcommand' -a 'cursor gtk hyprtoolkit pavucontrol portal completion help version'
+const fishCompletion = `complete -c caelestia-extras -f -n '__fish_use_subcommand' -a 'cursor gtk hyprtoolkit pavucontrol portal config completion help version'
 complete -c caelestia-extras -l config -r -d 'configuration file'
 complete -c caelestia-extras -l version -d 'show version'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from cursor' -a 'sync sync-xcursor'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from completion' -a 'bash zsh fish'
-complete -c caelestia-extras -n '__fish_seen_subcommand_from help' -a 'cursor gtk hyprtoolkit pavucontrol portal completion'
+complete -c caelestia-extras -n '__fish_seen_subcommand_from help' -a 'cursor gtk hyprtoolkit pavucontrol portal config completion'
+complete -c caelestia-extras -n '__fish_seen_subcommand_from config' -a 'validate'
 `

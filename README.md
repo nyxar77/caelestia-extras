@@ -109,6 +109,14 @@ caelestia-extras portal sync
 
 Use `--config PATH` to select another configuration file and `--version` to print the binary version.
 
+Validate the configuration and its local dependencies without applying an integration:
+
+```sh
+caelestia-extras config validate
+```
+
+The repository also includes [`config/caelestia-extras.schema.json`](config/caelestia-extras.schema.json). Associate that schema with `config.toml` in your TOML language server to get key completion, type checking, and inline documentation while editing. The schema handles the file format; `config validate` checks files and external commands that only exist on the target system.
+
 Run `caelestia-extras --help` for the full command list. Every integration has
 command-specific help, for example:
 
