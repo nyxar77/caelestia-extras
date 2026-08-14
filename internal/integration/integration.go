@@ -49,7 +49,7 @@ func LaunchPavucontrol(pavucontrol config.Pavucontrol, arguments []string) error
 		}
 		stateHome = filepath.Join(home, ".local", "state")
 	}
-	command := []string{pavucontrol.Command, "-style", "Fusion"}
+	command := []string{pavucontrol.Command, "-style", "Breeze"}
 	stylesheet := filepath.Join(stateHome, "caelestia", "theme", "pavucontrol-qt.qss")
 	if _, err := os.Stat(stylesheet); err == nil {
 		command = append(command, "-stylesheet", stylesheet)
@@ -60,7 +60,6 @@ func LaunchPavucontrol(pavucontrol config.Pavucontrol, arguments []string) error
 func SyncQt(qt config.Qt) error {
 	assets := map[string]string{
 		"qt-caelestia.conf": "colors/caelestia.conf",
-		"qt-caelestia.qss":  "qss/caelestia.qss",
 	}
 	for _, version := range []string{"qt5ct", "qt6ct"} {
 		for source, destination := range assets {
@@ -73,7 +72,68 @@ func SyncQt(qt config.Qt) error {
 			}
 		}
 	}
+	colourScheme := filepath.Join(qt.ThemeDir, "breeze-caelestia.colors")
+	if exists(colourScheme) {
+		if err := copyFile(colourScheme, filepath.Join(qt.DataHome, "color-schemes", "Caelestia.colors")); err != nil {
+			return err
+		}
+		return setKDEColourScheme(filepath.Join(qt.ConfigHome, "kdeglobals"), "Caelestia")
+	}
 	return nil
+}
+
+// setKDEColourScheme changes only the active colour scheme and keeps unrelated
+// KDE settings intact. Breeze uses this file when resolving its colour scheme.
+func setKDEColourScheme(path, name string) error {
+	data, err := os.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	lines := strings.Split(strings.TrimSuffix(string(data), "\n"), "\n")
+	if len(lines) == 1 && lines[0] == "" {
+		lines = nil
+	}
+	start, end := -1, len(lines)
+	for index, line := range lines {
+		if strings.TrimSpace(line) != "[General]" {
+			continue
+		}
+		start = index
+		for next := index + 1; next < len(lines); next++ {
+			if strings.HasPrefix(strings.TrimSpace(lines[next]), "[") {
+				end = next
+				break
+			}
+		}
+		break
+	}
+	if start == -1 {
+		if len(lines) > 0 {
+			lines = append(lines, "")
+		}
+		lines = append(lines, "[General]", "ColorScheme="+name)
+	} else {
+		updated := false
+		for index := start + 1; index < end; index++ {
+			if strings.HasPrefix(strings.TrimSpace(lines[index]), "ColorScheme=") {
+				lines[index] = "ColorScheme=" + name
+				updated = true
+				break
+			}
+		}
+		if !updated {
+			insertAt := end
+			for insertAt > start+1 && strings.TrimSpace(lines[insertAt-1]) == "" {
+				insertAt--
+			}
+			lines = append(lines[:insertAt], append([]string{"ColorScheme=" + name}, lines[insertAt:]...)...)
+		}
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(path, []byte(strings.Join(lines, "\n")+"\n"), 0o644)
 }
 
 func SyncQBittorrent(qbittorrent config.QBittorrent) error {

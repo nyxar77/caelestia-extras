@@ -32,6 +32,21 @@ func TestLoadDefaultsToHyprland(t *testing.T) {
 	}
 }
 
+func TestLoadSetsQtDataHome(t *testing.T) {
+	t.Setenv("XDG_DATA_HOME", filepath.Join(t.TempDir(), "data"))
+	path := filepath.Join(t.TempDir(), "config.toml")
+	if err := os.WriteFile(path, []byte("[qt]\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	config, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if config.Qt.DataHome != os.Getenv("XDG_DATA_HOME") {
+		t.Fatalf("data home = %q", config.Qt.DataHome)
+	}
+}
+
 func TestValidateAcceptsGeneratedOutputThatDoesNotExistYet(t *testing.T) {
 	config := Config{Hyprtoolkit: &Hyprtoolkit{}}
 	if err := config.Validate(); err != nil {

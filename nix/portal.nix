@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   cfg = config.programs.caelestia-extras.portal;
@@ -13,7 +14,7 @@ in {
     custom_palette=true
     icon_theme=${cfg.iconTheme}
     standard_dialogs=default
-    style=Fusion
+    style=Breeze
 
     [Fonts]
     fixed="Monospace,12,-1,5,50,0,0,0,0,0"
@@ -43,7 +44,8 @@ in {
   xdg.configFile."systemd/user/xdg-desktop-portal-hyprland.service.d/10-caelestia-theme.conf".text = ''
     [Service]
     Environment=QT_QPA_PLATFORMTHEME=qt6ct
-    Environment=QT_STYLE_OVERRIDE=Fusion
+    Environment=QT_STYLE_OVERRIDE=Breeze
+    Environment=QT_PLUGIN_PATH=${pkgs.qt6Packages.qt6ct}/lib/qt-6/plugins:${pkgs.kdePackages.breeze}/lib/qt-6/plugins
     Environment=XDG_CONFIG_HOME=${cfg.configHome}/portal-qt
   '';
 

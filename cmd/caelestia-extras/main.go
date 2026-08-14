@@ -283,7 +283,7 @@ Commands:
   gtk sync                 Sync the GTK theme and colour preference
   hyprtoolkit sync         Apply generated Hyprtoolkit configuration
   pavucontrol [arguments]  Launch the configured volume mixer
-  qt sync                  Apply the shared Qt palette and stylesheet
+  qt sync                  Apply the shared Qt palette and Breeze colour scheme
   qbittorrent sync         Build and select the qBittorrent theme
   portal sync              Apply generated portal themes
   config validate          Check files, tools, and enabled integrations
@@ -335,7 +335,8 @@ Arguments after pavucontrol are passed to pavucontrol-qt.
 
 const qtHelp = `Usage: caelestia-extras qt sync
 
-Copies Caelestia's generated Qt palette and stylesheet into qt5ct and qt6ct.
+Copies Caelestia's generated Qt palette into qt5ct and qt6ct, then installs
+the matching Breeze colour scheme.
 Requires a [qt] section in the configuration.
 `
 

@@ -2,7 +2,4 @@
 color_scheme_path=@CONFIG_HOME@/qt6ct/colors/caelestia.conf
 custom_palette=true
 icon_theme=Papirus-Dark
-style=Fusion
-
-[Interface]
-stylesheets=@CONFIG_HOME@/qt6ct/qss/caelestia.qss
+style=Breeze

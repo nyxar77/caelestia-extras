@@ -3,7 +3,7 @@ Description=Watch shared Caelestia Qt theme output
 
 [Path]
 PathChanged=@THEME_DIR@/qt-caelestia.conf
-PathChanged=@THEME_DIR@/qt-caelestia.qss
+PathChanged=@THEME_DIR@/breeze-caelestia.colors
 Unit=caelestia-extras-qt.service
 
 [Install]

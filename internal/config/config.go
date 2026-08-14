@@ -59,6 +59,7 @@ type Pavucontrol struct {
 type Qt struct {
 	ThemeDir   string `toml:"theme_dir"`
 	ConfigHome string `toml:"config_home"`
+	DataHome   string `toml:"data_home"`
 }
 
 type QBittorrent struct {
@@ -142,6 +143,9 @@ func Load(path string) (Config, error) {
 		}
 		if config.Qt.ConfigHome == "" {
 			config.Qt.ConfigHome = xdg("XDG_CONFIG_HOME", ".config")
+		}
+		if config.Qt.DataHome == "" {
+			config.Qt.DataHome = xdg("XDG_DATA_HOME", ".local/share")
 		}
 	}
 	if config.QBittorrent != nil {

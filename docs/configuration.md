@@ -83,13 +83,15 @@ does not install the application.
 
 ### `[qt]`
 
-- `theme_dir` — generated palette and stylesheet directory. Default:
+- `theme_dir` — generated palette and Breeze colour-scheme directory. Default:
   `$XDG_STATE_HOME/caelestia/theme`.
 - `config_home` — XDG config directory. Default: `$XDG_CONFIG_HOME`.
+- `data_home` — XDG data directory. Default: `$XDG_DATA_HOME`.
 
-The integration copies the generated palette and stylesheet to both `qt5ct` and
-`qt6ct`. The session must use `QT_QPA_PLATFORMTHEME=qt5ct:qt6ct` and
-`QT_STYLE_OVERRIDE=Fusion`; Home Manager configures this automatically.
+The integration copies Caelestia's palette to qt5ct and qt6ct, installs a
+generated KDE colour scheme, and selects it in `kdeglobals`. Qt 6 uses Breeze;
+Qt 5 keeps Fusion because this Nixpkgs revision does not ship a Qt 5 Breeze
+plugin. Home Manager configures the platform theme and plugin path.
 
 ### `[qbittorrent]`
 

@@ -73,8 +73,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "theme_dir": {"type": "string", "description": "Directory containing generated Qt palette and stylesheet files."},
-        "config_home": {"type": "string", "description": "XDG configuration directory used by qt5ct and qt6ct."}
+        "theme_dir": {"type": "string", "description": "Directory containing generated Qt palette and Breeze colour-scheme files."},
+        "config_home": {"type": "string", "description": "XDG configuration directory used by qt5ct and qt6ct."},
+        "data_home": {"type": "string", "description": "XDG data directory used for the generated Breeze colour scheme."}
       }
     },
     "qbittorrent": {

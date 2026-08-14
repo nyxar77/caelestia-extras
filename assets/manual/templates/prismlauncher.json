@@ -1,6 +1,6 @@
 {
   "name": "Caelestia",
-  "widgets": "Fusion",
+  "widgets": "Breeze",
   "qssFilePath": "themeStyle.css",
   "colors": {
     "Window": "#{{ surface.hex }}",

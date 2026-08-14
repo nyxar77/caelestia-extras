@@ -46,6 +46,7 @@
       qt = {
         theme_dir = cfg.qt.themeDir;
         config_home = cfg.qt.configHome;
+        data_home = cfg.qt.dataHome;
       };
     }
     // lib.optionalAttrs cfg.qbittorrent.enable {
@@ -157,12 +158,17 @@ in {
       themeDir = lib.mkOption {
         type = lib.types.str;
         default = "${config.xdg.stateHome}/caelestia/theme";
-        description = "Directory containing generated Qt palette and stylesheet files.";
+        description = "Directory containing generated Qt palette and Breeze colour-scheme files.";
       };
       configHome = lib.mkOption {
         type = lib.types.str;
         default = config.xdg.configHome;
         description = "XDG configuration directory used by qt5ct and qt6ct.";
+      };
+      dataHome = lib.mkOption {
+        type = lib.types.str;
+        default = config.xdg.dataHome;
+        description = "XDG data directory used for the generated Breeze colour scheme.";
       };
       iconTheme = lib.mkOption {
         type = lib.types.str;
@@ -228,12 +234,12 @@ in {
       "caelestia-extras/config.toml".source = configFile;
     } // lib.optionalAttrs cfg.qt.enable {
       "caelestia/templates/qt-caelestia.conf".source = ../assets/manual/templates/qt-caelestia.conf;
-      "caelestia/templates/qt-caelestia.qss".source = ../assets/manual/templates/qt-caelestia.qss;
+      "caelestia/templates/breeze-caelestia.colors".source = ../assets/manual/templates/breeze-caelestia.colors;
     } // lib.optionalAttrs cfg.prismlauncher.enable {
       "caelestia/templates/prismlauncher.json".text = ''
         {
           "name": "Caelestia",
-          "widgets": "Fusion",
+          "widgets": "Breeze",
           "qssFilePath": "themeStyle.css",
           "colors": {
             "Window": "#{{ surface.hex }}", "WindowText": "#{{ onSurface.hex }}",
@@ -533,7 +539,7 @@ in {
         caelestia-extras-qt = {
           Path.PathChanged = [
             "${cfg.qt.themeDir}/qt-caelestia.conf"
-            "${cfg.qt.themeDir}/qt-caelestia.qss"
+            "${cfg.qt.themeDir}/breeze-caelestia.colors"
           ];
           Install.WantedBy = ["graphical-session.target"];
         };

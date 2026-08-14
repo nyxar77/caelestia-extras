@@ -49,9 +49,9 @@ PrismLauncher’s theme directory. It does not install PrismLauncher; select
 
 ## Shared Qt theme
 
-Enabling `qt` generates a shared Qt5/Qt6 palette and stylesheet. It includes
-the base controls; individual integrations add their own selectors where an
-application needs more detail.
+Enabling `qt` generates a shared Qt5/Qt6 palette and a Breeze colour scheme.
+Breeze draws the base Qt 6 controls; individual integrations add their own
+selectors where an application needs more detail.
 
 ## XDG portals
 

@@ -1,4 +1,4 @@
 [Service]
 Environment=QT_QPA_PLATFORMTHEME=qt6ct
-Environment=QT_STYLE_OVERRIDE=Fusion
+Environment=QT_STYLE_OVERRIDE=Breeze
 Environment=XDG_CONFIG_HOME=@CONFIG_HOME@/portal-qt

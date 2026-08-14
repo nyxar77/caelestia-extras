@@ -159,7 +159,7 @@ else
   create_config=false
 fi
 
-for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json prismlauncher.qss qt-caelestia.conf qt-caelestia.qss qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
+for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json prismlauncher.qss qt-caelestia.conf breeze-caelestia.colors qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
   stage_managed \
     "$repo_dir/assets/manual/templates/$template" \
     "templates/$template"
@@ -209,7 +209,7 @@ else
   printf 'keeping user config: %s\n' "$config_file"
 fi
 
-for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json prismlauncher.qss qt-caelestia.conf qt-caelestia.qss qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
+for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json prismlauncher.qss qt-caelestia.conf breeze-caelestia.colors qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
   commit_managed \
     "templates/$template" \
     "$config_home/caelestia/templates/$template"

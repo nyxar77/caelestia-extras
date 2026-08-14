@@ -12,7 +12,7 @@ use:
 - GTK: `dconf`
 - XCursor fallback: `cbmp` and `ctgen`
 - pavucontrol: `pavucontrol-qt`
-- Shared Qt theme: `qt5ct` and `qt6ct`
+- Shared Qt theme: `qt5ct`, `qt6ct`, and Breeze for Qt 6
 - qBittorrent: `qbittorrent` and Qt's `rcc`
 
 ## Install or update
@@ -70,8 +70,9 @@ qBittorrent is updated by a path unit but is not restarted for you.
 Portal service drop-ins take effect after the next login. The script does not
 restart portal processes for you.
 
-The `qt` integration also writes an `environment.d` file. Log out and back in
-before launching Qt applications so they receive the Qt5/Qt6 platform theme.
+The `qt` integration also writes an `environment.d` file and a generated
+Caelestia KDE colour scheme. Log out and back in before launching Qt
+applications so they receive the Qt5/Qt6 platform theme.
 
 ## XDG paths
 

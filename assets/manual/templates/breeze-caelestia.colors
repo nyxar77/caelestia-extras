@@ -1,0 +1,105 @@
+[Colors:Button]
+BackgroundAlternate=#{{ surfaceContainerHigh.hex }}
+BackgroundNormal=#{{ surfaceContainer.hex }}
+DecorationFocus=#{{ primary.hex }}
+DecorationHover=#{{ primary.hex }}
+ForegroundActive=#{{ primary.hex }}
+ForegroundInactive=#{{ onSurfaceVariant.hex }}
+ForegroundLink=#{{ primary.hex }}
+ForegroundNegative=#{{ error.hex }}
+ForegroundNeutral=#{{ tertiary.hex }}
+ForegroundNormal=#{{ onSurface.hex }}
+ForegroundPositive=#{{ primary.hex }}
+ForegroundVisited=#{{ secondary.hex }}
+
+[Colors:Complementary]
+BackgroundAlternate=#{{ surfaceContainerHigh.hex }}
+BackgroundNormal=#{{ inverseSurface.hex }}
+DecorationFocus=#{{ primary.hex }}
+DecorationHover=#{{ primary.hex }}
+ForegroundActive=#{{ inversePrimary.hex }}
+ForegroundInactive=#{{ inverseOnSurface.hex }}
+ForegroundLink=#{{ inversePrimary.hex }}
+ForegroundNegative=#{{ inverseOnSurface.hex }}
+ForegroundNeutral=#{{ inverseOnSurface.hex }}
+ForegroundNormal=#{{ inverseOnSurface.hex }}
+ForegroundPositive=#{{ inverseOnSurface.hex }}
+ForegroundVisited=#{{ inverseOnSurface.hex }}
+
+[Colors:Header]
+BackgroundAlternate=#{{ surfaceContainerLow.hex }}
+BackgroundNormal=#{{ surfaceContainer.hex }}
+DecorationFocus=#{{ primary.hex }}
+DecorationHover=#{{ primary.hex }}
+ForegroundActive=#{{ primary.hex }}
+ForegroundInactive=#{{ onSurfaceVariant.hex }}
+ForegroundLink=#{{ primary.hex }}
+ForegroundNegative=#{{ error.hex }}
+ForegroundNeutral=#{{ tertiary.hex }}
+ForegroundNormal=#{{ onSurface.hex }}
+ForegroundPositive=#{{ primary.hex }}
+ForegroundVisited=#{{ secondary.hex }}
+
+[Colors:Selection]
+BackgroundAlternate=#{{ primaryContainer.hex }}
+BackgroundNormal=#{{ primary.hex }}
+DecorationFocus=#{{ primary.hex }}
+DecorationHover=#{{ primary.hex }}
+ForegroundActive=#{{ onPrimary.hex }}
+ForegroundInactive=#{{ onPrimary.hex }}
+ForegroundLink=#{{ onPrimary.hex }}
+ForegroundNegative=#{{ onPrimary.hex }}
+ForegroundNeutral=#{{ onPrimary.hex }}
+ForegroundNormal=#{{ onPrimary.hex }}
+ForegroundPositive=#{{ onPrimary.hex }}
+ForegroundVisited=#{{ onPrimary.hex }}
+
+[Colors:Tooltip]
+BackgroundAlternate=#{{ surfaceContainerHigh.hex }}
+BackgroundNormal=#{{ surfaceContainer.hex }}
+DecorationFocus=#{{ primary.hex }}
+DecorationHover=#{{ primary.hex }}
+ForegroundActive=#{{ primary.hex }}
+ForegroundInactive=#{{ onSurfaceVariant.hex }}
+ForegroundLink=#{{ primary.hex }}
+ForegroundNegative=#{{ error.hex }}
+ForegroundNeutral=#{{ tertiary.hex }}
+ForegroundNormal=#{{ onSurface.hex }}
+ForegroundPositive=#{{ primary.hex }}
+ForegroundVisited=#{{ secondary.hex }}
+
+[Colors:View]
+BackgroundAlternate=#{{ surfaceContainerLow.hex }}
+BackgroundNormal=#{{ surface.hex }}
+DecorationFocus=#{{ primary.hex }}
+DecorationHover=#{{ primary.hex }}
+ForegroundActive=#{{ primary.hex }}
+ForegroundInactive=#{{ onSurfaceVariant.hex }}
+ForegroundLink=#{{ primary.hex }}
+ForegroundNegative=#{{ error.hex }}
+ForegroundNeutral=#{{ tertiary.hex }}
+ForegroundNormal=#{{ onSurface.hex }}
+ForegroundPositive=#{{ primary.hex }}
+ForegroundVisited=#{{ secondary.hex }}
+
+[Colors:Window]
+BackgroundAlternate=#{{ surfaceContainerHigh.hex }}
+BackgroundNormal=#{{ surface.hex }}
+DecorationFocus=#{{ primary.hex }}
+DecorationHover=#{{ primary.hex }}
+ForegroundActive=#{{ primary.hex }}
+ForegroundInactive=#{{ onSurfaceVariant.hex }}
+ForegroundLink=#{{ primary.hex }}
+ForegroundNegative=#{{ error.hex }}
+ForegroundNeutral=#{{ tertiary.hex }}
+ForegroundNormal=#{{ onSurface.hex }}
+ForegroundPositive=#{{ primary.hex }}
+ForegroundVisited=#{{ secondary.hex }}
+
+[General]
+ColorScheme=Caelestia
+Name=Caelestia
+shadeSortColumn=true
+
+[KDE]
+contrast=4
