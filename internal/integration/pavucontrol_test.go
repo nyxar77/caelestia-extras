@@ -21,6 +21,25 @@ func TestSyncQBittorrentIgnoresMissingCommand(t *testing.T) {
 	}
 }
 
+func TestSyncQBittorrentIgnoresMissingResourceCompiler(t *testing.T) {
+	root := t.TempDir()
+	bin := filepath.Join(root, "bin")
+	if err := os.MkdirAll(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(bin, "qbittorrent"), []byte("#!/bin/sh\nexit 0\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin)
+	configFile := filepath.Join(root, "config", "qBittorrent.conf")
+	if err := SyncQBittorrent(config.QBittorrent{Command: "qbittorrent", RCCCommand: "missing-rcc", ConfigFile: configFile}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(configFile); !os.IsNotExist(err) {
+		t.Fatalf("config file = %v, want no file", err)
+	}
+}
+
 func TestSyncQBittorrentBuildsAndSelectsTheme(t *testing.T) {
 	root := t.TempDir()
 	bin := filepath.Join(root, "bin")
@@ -40,7 +59,7 @@ func TestSyncQBittorrentBuildsAndSelectsTheme(t *testing.T) {
 	themeDir := filepath.Join(root, "theme")
 	write(t, filepath.Join(themeDir, "qbittorrent.qss"), "QWidget {}")
 	write(t, filepath.Join(themeDir, "qbittorrent.json"), `{ "colors": {} }`)
-	themeFile := filepath.Join(root, "data", "caelestia.qbtheme")
+	themeFile := filepath.Join(root, "data", "qBittorrent", "themes", "Caelestia.qbtheme")
 	configFile := filepath.Join(root, "config", "qBittorrent.conf")
 	if err := SyncQBittorrent(config.QBittorrent{Command: "qbittorrent", RCCCommand: "rcc", ThemeDir: themeDir, ThemeFile: themeFile, ConfigFile: configFile}); err != nil {
 		t.Fatal(err)

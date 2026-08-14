@@ -59,12 +59,10 @@ config_file="$test_dir/config/caelestia-extras/config.toml"
 test -x "$test_dir/bin/caelestia-extras"
 test -f "$config_file"
 test -L "$test_dir/config/caelestia/templates/gtk-portal.css"
-test -L "$test_dir/config/caelestia/templates/prismlauncher.qss"
 test -L "$test_dir/config/caelestia/templates/breeze-caelestia.colors"
 test -L "$test_dir/config/systemd/user/caelestia-extras-gtk.path"
 test -L "$test_dir/data/themes/Caelestia-Portal/gtk-4.0/base-dark.css"
 test -L "$test_dir/data/PrismLauncher/themes/caelestia-breeze/theme.json"
-test -L "$test_dir/data/PrismLauncher/themes/caelestia-breeze/themeStyle.css"
 
 if TEST_INTERRUPT_GO=1 \
   HOME="$test_dir/cancel/home" \

@@ -159,7 +159,7 @@ func Load(path string) (Config, error) {
 			config.QBittorrent.ThemeDir = filepath.Join(xdg("XDG_STATE_HOME", ".local/state"), "caelestia", "theme")
 		}
 		if config.QBittorrent.ThemeFile == "" {
-			config.QBittorrent.ThemeFile = filepath.Join(xdg("XDG_DATA_HOME", ".local/share"), "caelestia-extras", "qbittorrent", "caelestia.qbtheme")
+			config.QBittorrent.ThemeFile = filepath.Join(xdg("XDG_DATA_HOME", ".local/share"), "qBittorrent", "themes", "Caelestia.qbtheme")
 		}
 		if config.QBittorrent.ConfigFile == "" {
 			config.QBittorrent.ConfigFile = filepath.Join(xdg("XDG_CONFIG_HOME", ".config"), "qBittorrent", "qBittorrent.conf")

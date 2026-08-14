@@ -169,7 +169,7 @@ func SyncQBittorrent(qbittorrent config.QBittorrent) error {
 	if err := os.WriteFile(qrc, []byte(resources), 0o644); err != nil {
 		return err
 	}
-	compiled := filepath.Join(work, "caelestia.qbtheme")
+	compiled := filepath.Join(work, "Caelestia.qbtheme")
 	if output, err := exec.Command(rcc, "-binary", "-o", compiled, qrc).CombinedOutput(); err != nil {
 		return fmt.Errorf("compile qBittorrent theme: %w: %s", err, strings.TrimSpace(string(output)))
 	}

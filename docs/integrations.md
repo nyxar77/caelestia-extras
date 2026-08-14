@@ -36,16 +36,18 @@ generated a stylesheet, it is passed to the application.
 
 ## qBittorrent
 
-`qbittorrent sync` builds a `.qbtheme` bundle from the active palette, including
-its palette, log, and transfer-state colours. It changes only qBittorrent's
-custom-theme settings and does nothing when qBittorrent or `rcc` is unavailable.
-Restart qBittorrent after a sync.
+`qbittorrent sync` builds `Caelestia.qbtheme` from the active palette, including
+its palette, log, and transfer-state colours. It selects that custom-theme file
+and does nothing when qBittorrent or `rcc` is unavailable. Home Manager provides
+the Qt compiler; manual installs need `rcc` on `PATH`. Restart qBittorrent after
+a sync.
 
 ## PrismLauncher
 
-Enabling `prismlauncher` writes a generated palette and widget stylesheet into
-PrismLauncher’s theme directory. It does not install PrismLauncher; select
-`Caelestia` in PrismLauncher if it is not already selected.
+Enabling `prismlauncher` writes a generated Caelestia palette into
+PrismLauncher’s theme directory. PrismLauncher uses Breeze for the controls; it
+does not install PrismLauncher. Select `Caelestia` in PrismLauncher if it is not
+already selected.
 
 ## Shared Qt theme
 

@@ -47,6 +47,23 @@ func TestLoadSetsQtDataHome(t *testing.T) {
 	}
 }
 
+func TestLoadNamesTheDefaultQBittorrentTheme(t *testing.T) {
+	dataHome := filepath.Join(t.TempDir(), "data")
+	t.Setenv("XDG_DATA_HOME", dataHome)
+	path := filepath.Join(t.TempDir(), "config.toml")
+	if err := os.WriteFile(path, []byte("[qbittorrent]\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	config, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(dataHome, "qBittorrent", "themes", "Caelestia.qbtheme")
+	if config.QBittorrent.ThemeFile != want {
+		t.Fatalf("theme file = %q, want %q", config.QBittorrent.ThemeFile, want)
+	}
+}
+
 func TestValidateAcceptsGeneratedOutputThatDoesNotExistYet(t *testing.T) {
 	config := Config{Hyprtoolkit: &Hyprtoolkit{}}
 	if err := config.Validate(); err != nil {

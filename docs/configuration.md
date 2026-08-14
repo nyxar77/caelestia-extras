@@ -99,12 +99,13 @@ plugin. Home Manager configures the platform theme and plugin path.
 - `rcc_command` — Qt Resource Compiler command. Default: `rcc`.
 - `theme_dir` — generated source files. Default: `$XDG_STATE_HOME/caelestia/theme`.
 - `theme_file` — generated `.qbtheme` bundle. Default:
-  `$XDG_DATA_HOME/caelestia-extras/qbittorrent/caelestia.qbtheme`.
+  `$XDG_DATA_HOME/qBittorrent/themes/Caelestia.qbtheme`.
 - `config_file` — qBittorrent config file. Default:
   `$XDG_CONFIG_HOME/qBittorrent/qBittorrent.conf`.
 
-It updates qBittorrent only when both qBittorrent and `rcc` are installed. It
-does not install either one, and qBittorrent needs a restart after a theme sync.
+It updates qBittorrent only when both qBittorrent and `rcc` are available. Home
+Manager supplies the Qt compiler without installing qBittorrent itself. Manual
+installs need `rcc` on `PATH`; qBittorrent needs a restart after a theme sync.
 
 ### `[portal]`
 

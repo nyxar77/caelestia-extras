@@ -1,7 +1,6 @@
 {
   "name": "Caelestia",
   "widgets": "Breeze",
-  "qssFilePath": "themeStyle.css",
   "colors": {
     "Window": "#{{ surface.hex }}",
     "WindowText": "#{{ onSurface.hex }}",
