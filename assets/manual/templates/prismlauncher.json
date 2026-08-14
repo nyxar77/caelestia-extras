@@ -1,6 +1,7 @@
 {
   "name": "Caelestia",
   "widgets": "Breeze",
+  "qssFilePath": "",
   "colors": {
     "Window": "#{{ surface.hex }}",
     "WindowText": "#{{ onSurface.hex }}",
@@ -15,7 +16,7 @@
     "Link": "#{{ primary.hex }}",
     "Highlight": "#{{ primary.hex }}",
     "HighlightedText": "#{{ onPrimary.hex }}",
-    "fadeAmount": 0.42,
+    "fadeAmount": 0.14,
     "fadeColor": "#{{ surface.hex }}"
   },
   "logColors": {

@@ -268,15 +268,17 @@ func SyncPortal(portal config.Portal) error {
 		}
 	}
 
-	if portal.ApplyGlobalGTK && exists(filepath.Join(theme, "gtk-global.css")) {
-		for _, version := range []string{"gtk-3.0", "gtk-4.0"} {
-			destination := filepath.Join(portal.ConfigHome, version, "gtk.css")
+	for _, version := range []string{"gtk-3.0", "gtk-4.0"} {
+		destination := filepath.Join(portal.ConfigHome, version, "gtk.css")
+		if portal.ApplyGlobalGTK && exists(filepath.Join(theme, "gtk-global.css")) {
 			if err := copyFile(filepath.Join(theme, "gtk-global.css"), destination); err != nil {
 				return err
 			}
 			if err := os.Remove(filepath.Join(portal.ConfigHome, version, "thunar.css")); err != nil && !os.IsNotExist(err) {
 				return err
 			}
+		} else if err := removeManagedGlobalGTK(destination); err != nil {
+			return err
 		}
 	}
 
@@ -311,6 +313,24 @@ func SyncPortal(portal config.Portal) error {
 		}
 	}
 	return nil
+}
+
+const managedGlobalGTKHeader = "/*\n  Dynamic GTK colours only."
+
+// removeManagedGlobalGTK restores GTK's normal theme only when the file was
+// written by this integration. User stylesheets are left untouched.
+func removeManagedGlobalGTK(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	if !strings.HasPrefix(string(data), managedGlobalGTKHeader) {
+		return nil
+	}
+	return os.Remove(path)
 }
 
 func exists(path string) bool {

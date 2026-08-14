@@ -222,8 +222,8 @@ in {
       };
       applyGlobalGtk = lib.mkOption {
         type = lib.types.bool;
-        default = true;
-        description = "Write Caelestia's generated GTK stylesheet to GTK 3 and GTK 4.";
+        default = false;
+        description = "Write Caelestia's generated GTK stylesheet to GTK 3 and GTK 4. Keep this disabled to leave applications such as Nautilus to their own theme.";
       };
     };
   };
@@ -240,13 +240,14 @@ in {
         {
           "name": "Caelestia",
           "widgets": "Breeze",
+          "qssFilePath": "",
           "colors": {
             "Window": "#{{ surface.hex }}", "WindowText": "#{{ onSurface.hex }}",
             "Base": "#{{ surfaceContainerLowest.hex }}", "AlternateBase": "#{{ surfaceContainerLow.hex }}",
             "ToolTipBase": "#{{ inverseSurface.hex }}", "ToolTipText": "#{{ inverseOnSurface.hex }}",
             "Text": "#{{ onSurface.hex }}", "Button": "#{{ surfaceContainerHighest.hex }}", "ButtonText": "#{{ onSurface.hex }}",
             "BrightText": "#{{ error.hex }}", "Link": "#{{ primary.hex }}", "Highlight": "#{{ primary.hex }}", "HighlightedText": "#{{ onPrimary.hex }}",
-            "fadeAmount": 0.42, "fadeColor": "#{{ surface.hex }}"
+            "fadeAmount": 0.14, "fadeColor": "#{{ surface.hex }}"
           },
           "logColors": {
             "Message": "#{{ onSurface.hex }}", "Launcher": "#{{ primary.hex }}", "Debug": "#{{ onSurfaceVariant.hex }}",

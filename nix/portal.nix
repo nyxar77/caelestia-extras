@@ -285,10 +285,10 @@ in {
 
     filechooser placessidebar row:selected,
     filechooser placessidebar row:backdrop:selected {
-      color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.15);
+      color: @portal_accent_fg;
+      background-color: @portal_accent;
       background-image: none;
-      border-color: alpha(@portal_accent, 0.40);
+      border-color: @portal_accent;
       box-shadow: none;
     }
 
@@ -325,10 +325,10 @@ in {
     filechooser treeview.view:selected,
     filechooser treeview.view:selected:focus,
     filechooser treeview.view:selected:backdrop {
-      color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.13);
+      color: @portal_accent_fg;
+      background-color: @portal_accent;
       background-image: none;
-      border-color: transparent;
+      border-color: @portal_accent;
       box-shadow: none;
     }
 

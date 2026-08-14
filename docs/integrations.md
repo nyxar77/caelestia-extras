@@ -61,6 +61,10 @@ selectors where an application needs more detail.
 locations. The Home Manager module also installs the service drop-ins needed
 to keep the portal processes isolated from the global Qt and GTK settings.
 
+Global GTK styling is off by default, so Nautilus and other regular GTK apps
+keep their normal theme. Set `portal.applyGlobalGtk = true` only if you want
+Extras to manage their palette too.
+
 ## Home Manager and systemd
 
 The Home Manager module creates a service for each enabled sync and a path

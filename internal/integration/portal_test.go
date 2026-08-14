@@ -68,3 +68,24 @@ func TestSyncPortalRemovesStalePortalOverride(t *testing.T) {
 		}
 	}
 }
+
+func TestSyncPortalRestoresGlobalGTKThemeWithoutRemovingUserStyles(t *testing.T) {
+	root := t.TempDir()
+	theme := filepath.Join(root, "theme")
+	configHome := filepath.Join(root, "config")
+	dataHome := filepath.Join(root, "data")
+	write(t, filepath.Join(theme, "gtk-portal.css"), "portal")
+	write(t, filepath.Join(configHome, "gtk-3.0", "gtk.css"), managedGlobalGTKHeader+"\nmanaged")
+	write(t, filepath.Join(configHome, "gtk-4.0", "gtk.css"), "/* user stylesheet */\n")
+
+	if err := SyncPortal(config.Portal{ThemeDir: theme, ConfigHome: configHome, DataHome: dataHome, ThemeName: "Caelestia-Portal"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(configHome, "gtk-3.0", "gtk.css")); !os.IsNotExist(err) {
+		t.Fatalf("managed GTK stylesheet = %v, want removed", err)
+	}
+	data, err := os.ReadFile(filepath.Join(configHome, "gtk-4.0", "gtk.css"))
+	if err != nil || string(data) != "/* user stylesheet */\n" {
+		t.Fatalf("user GTK stylesheet = %q, %v", data, err)
+	}
+}
