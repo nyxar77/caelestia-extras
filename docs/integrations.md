@@ -36,11 +36,13 @@ generated a stylesheet, it is passed to the application.
 
 ## qBittorrent
 
-`qbittorrent sync` builds `Caelestia.qbtheme` from the active palette, including
-its palette, log, and transfer-state colours. It selects that custom-theme file
-and does nothing when qBittorrent or `rcc` is unavailable. Home Manager provides
-the Qt compiler; manual installs need `rcc` on `PATH`. Restart qBittorrent after
-a sync.
+`qbittorrent sync` builds `Caelestia.qbtheme` from the active palette. Normal UI
+uses the active Caelestia colours; transfer states and sidebar icons use muted,
+consistent semantic colours, so success, activity, warnings, and errors stay
+clear without turning the interface into a rainbow. It selects that custom-theme
+file and does nothing when qBittorrent or `rcc` is unavailable. Home Manager
+provides the Qt compiler; manual installs need `rcc` on `PATH`. Restart
+qBittorrent after a sync.
 
 ## PrismLauncher
 

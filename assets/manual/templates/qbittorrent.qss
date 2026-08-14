@@ -1,6 +1,15 @@
 QWidget { background-color: #{{ surface.hex }}; color: #{{ onSurface.hex }}; }
-QToolBar, QStatusBar { background-color: #{{ surfaceContainerLow.hex }}; border: 0; }
-QTabBar::tab { padding: 7px 14px; color: #{{ onSurfaceVariant.hex }}; background-color: #{{ surfaceContainerLow.hex }}; border-bottom: 3px solid transparent; }
+QMainWindow, QDialog, QFrame, QScrollArea { background-color: #{{ surface.hex }}; }
+QToolBar, QStatusBar, QMenuBar { background-color: #{{ surfaceContainerLow.hex }}; border: 0; border-bottom: 1px solid #{{ outlineVariant.hex }}; }
+QTabWidget::pane { background-color: #{{ surface.hex }}; border: 1px solid #{{ outlineVariant.hex }}; }
+QTabBar::tab { padding: 7px 14px; color: #{{ onSurfaceVariant.hex }}; background-color: #{{ surfaceContainerLow.hex }}; border: 0; border-bottom: 3px solid transparent; }
+QTabBar::tab:hover { color: #{{ onSurface.hex }}; background-color: #{{ surfaceContainer.hex }}; border-bottom-color: #{{ tertiary.hex }}; }
 QTabBar::tab:selected { color: #{{ onSurface.hex }}; background-color: #{{ surfaceContainerHigh.hex }}; border-bottom-color: #{{ primary.hex }}; }
 QPushButton, QToolButton, QComboBox, QLineEdit { min-height: 30px; padding: 4px 10px; background-color: #{{ surfaceContainer.hex }}; border: 1px solid #{{ outlineVariant.hex }}; border-radius: 7px; }
+QPushButton:hover, QToolButton:hover, QComboBox:hover, QLineEdit:focus { border-color: #{{ primary.hex }}; background-color: #{{ surfaceContainerHigh.hex }}; }
+QHeaderView::section { padding: 6px 10px; background-color: #{{ surfaceContainerLow.hex }}; color: #{{ onSurface.hex }}; border: 0; border-right: 1px solid #{{ outlineVariant.hex }}; border-bottom: 1px solid #{{ outlineVariant.hex }}; }
+QTreeView::item { padding: 5px; border: 0; }
+QTreeView::item:hover { background-color: #{{ surfaceContainer.hex }}; }
 QTreeView::item:selected { background-color: #{{ primaryContainer.hex }}; color: #{{ onPrimaryContainer.hex }}; }
+QProgressBar { border: 1px solid #{{ outlineVariant.hex }}; border-radius: 5px; background-color: #{{ surfaceContainerHigh.hex }}; text-align: center; }
+QProgressBar::chunk { background-color: #{{ primary.hex }}; border-radius: 4px; }
