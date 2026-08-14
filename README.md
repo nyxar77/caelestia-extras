@@ -109,14 +109,28 @@ caelestia-extras portal sync
 
 Use `--config PATH` to select another configuration file and `--version` to print the binary version.
 
-The `systemd/` directory contains user service and path-unit files for the cursor, GTK, Hyprtoolkit, and portal integrations. Copy the units you enable to `~/.config/systemd/user/`, then enable the corresponding `.path` units. The binary must be available in the user service `PATH`.
-
-## Development
+Run `caelestia-extras --help` for the full command list. Every integration has
+command-specific help, for example:
 
 ```sh
-go test ./...
-nix flake check
+caelestia-extras help cursor
+caelestia-extras portal --help
 ```
+
+Generate completions for the shell you use:
+
+```sh
+# Bash
+source <(caelestia-extras completion bash)
+
+# Zsh
+caelestia-extras completion zsh > ~/.zfunc/_caelestia-extras
+
+# Fish
+caelestia-extras completion fish | source
+```
+
+The `systemd/` directory contains user service and path-unit files for the cursor, GTK, Hyprtoolkit, and portal integrations. Copy the units you enable to `~/.config/systemd/user/`, then enable the corresponding `.path` units. The binary must be available in the user service `PATH`.
 
 ## License
 
