@@ -29,6 +29,8 @@ update_gtk = true
 
 [pavucontrol]
 
+[qbittorrent]
+
 [portal]
 theme_name = "Caelestia-Portal"
 apply_global_gtk = true
@@ -73,6 +75,22 @@ to detect the compositor reliably.
 ### `[pavucontrol]`
 
 - `command` — mixer command. Default: `pavucontrol-qt`.
+
+If the command is absent, launching it is a no-op. Enabling this integration
+does not install the application.
+
+### `[qbittorrent]`
+
+- `command` — qBittorrent command. Default: `qbittorrent`.
+- `rcc_command` — Qt Resource Compiler command. Default: `rcc`.
+- `theme_dir` — generated source files. Default: `$XDG_STATE_HOME/caelestia/theme`.
+- `theme_file` — generated `.qbtheme` bundle. Default:
+  `$XDG_DATA_HOME/caelestia-extras/qbittorrent/caelestia.qbtheme`.
+- `config_file` — qBittorrent config file. Default:
+  `$XDG_CONFIG_HOME/qBittorrent/qBittorrent.conf`.
+
+It updates qBittorrent only when both qBittorrent and `rcc` are installed. It
+does not install either one, and qBittorrent needs a restart after a theme sync.
 
 ### `[portal]`
 

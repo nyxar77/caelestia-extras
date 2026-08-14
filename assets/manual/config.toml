@@ -11,4 +11,6 @@ backend = "hyprland"
 # [gtk]
 # [hyprtoolkit]
 # [pavucontrol]
+# PrismLauncher needs no config section. The installer makes its theme available.
+# [qbittorrent]
 # [portal]

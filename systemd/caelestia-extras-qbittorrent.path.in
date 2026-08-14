@@ -1,0 +1,10 @@
+[Unit]
+Description=Watch Caelestia qBittorrent theme output
+
+[Path]
+PathChanged=@THEME_DIR@/qbittorrent.qss
+PathChanged=@THEME_DIR@/qbittorrent.json
+Unit=caelestia-extras-qbittorrent.service
+
+[Install]
+WantedBy=graphical-session.target

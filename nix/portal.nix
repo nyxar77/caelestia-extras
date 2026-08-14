@@ -55,6 +55,14 @@ in {
     @import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained.css");
   '';
 
+  xdg.dataFile."themes/${cfg.themeName}/gtk-4.0/base-dark.css".text = ''
+    @import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained-dark.css");
+  '';
+
+  xdg.dataFile."themes/${cfg.themeName}/gtk-4.0/base-light.css".text = ''
+    @import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained.css");
+  '';
+
   xdg.configFile."caelestia/templates/gtk-portal.css".text = ''
     /*
       GTK 3 portal file chooser only. Caelestia replaces the colours and mode,
@@ -65,6 +73,8 @@ in {
 
     @define-color portal_accent #{{ primary.hex }};
     @define-color portal_accent_fg #{{ onPrimary.hex }};
+    @define-color portal_secondary #{{ secondary.hex }};
+    @define-color portal_tertiary #{{ tertiary.hex }};
     @define-color portal_window #{{ background.hex }};
     @define-color portal_bg #{{ surface.hex }};
     @define-color portal_fg #{{ onSurface.hex }};
@@ -99,7 +109,7 @@ in {
       padding: 0 9px;
       color: @portal_fg;
       background-color: @portal_panel;
-      background-image: linear-gradient(to bottom, alpha(@portal_accent, 0.10), transparent 74%);
+      background-image: linear-gradient(110deg, alpha(@portal_accent, 0.20), alpha(@portal_tertiary, 0.10) 58%, transparent);
       border-top: 1px solid alpha(@portal_accent, 0.68);
       border-bottom: 1px solid alpha(@portal_border, 0.78);
       box-shadow: inset 0 -1px alpha(@portal_accent, 0.18);
@@ -133,9 +143,9 @@ in {
 
     headerbar button.text-button:not(.default),
     .titlebar button.text-button:not(.default) {
-      min-width: 58px;
-      padding-left: 13px;
-      padding-right: 13px;
+      min-width: 78px;
+      padding-left: 18px;
+      padding-right: 18px;
     }
 
     headerbar button.image-button,
@@ -175,9 +185,9 @@ in {
       padding-right: 18px;
       color: @portal_accent_fg;
       background-color: @portal_accent;
-      background-image: linear-gradient(to bottom, alpha(white, 0.12), alpha(@portal_shadow, 0.06));
+      background-image: linear-gradient(135deg, @portal_accent, @portal_tertiary);
       border-color: @portal_accent;
-      box-shadow: inset 0 1px alpha(white, 0.14), 0 2px 8px alpha(@portal_shadow, 0.24);
+      box-shadow: inset 0 1px alpha(white, 0.16), 0 3px 10px alpha(@portal_shadow, 0.30);
     }
 
     headerbar button.default:hover,
@@ -185,8 +195,8 @@ in {
     .titlebar button.default:hover,
     .titlebar button.suggested-action:hover {
       color: @portal_accent_fg;
-      background-color: shade(@portal_accent, 1.08);
-      border-color: shade(@portal_accent, 1.08);
+      background-color: shade(@portal_tertiary, 1.08);
+      border-color: @portal_tertiary;
     }
 
     headerbar button:disabled,
@@ -268,7 +278,7 @@ in {
     filechooser placessidebar.sidebar,
     filechooser placessidebar {
       min-width: 172px;
-      padding: 9px 7px;
+      padding: 11px 8px;
       color: @portal_fg;
       background-color: @portal_sidebar;
       background-image: none;
@@ -276,9 +286,9 @@ in {
     }
 
     filechooser placessidebar row {
-      min-height: 36px;
-      margin: 3px 5px;
-      padding: 6px 10px;
+      min-height: 40px;
+      margin: 4px 6px;
+      padding: 7px 12px;
       color: @portal_muted;
       background-color: transparent;
       border-radius: 9px;
@@ -286,13 +296,14 @@ in {
 
     filechooser placessidebar row:hover {
       color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.14);
+      background-color: alpha(@portal_secondary, 0.16);
+      box-shadow: inset 3px 0 alpha(@portal_secondary, 0.72);
     }
 
     filechooser placessidebar row:selected {
       color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.22);
-      box-shadow: inset 3px 0 @portal_accent;
+      background-image: linear-gradient(90deg, alpha(@portal_accent, 0.34), alpha(@portal_tertiary, 0.16));
+      box-shadow: inset 4px 0 @portal_accent;
     }
 
     filechooser placessidebar row image.sidebar-icon,
@@ -478,6 +489,7 @@ in {
     }
 
     filechooser checkbutton check,
+    filechooser checkbutton > check,
     filechooser actionbar checkbutton check,
     filechooser .dialog-action-box checkbutton check {
       min-width: 14px;
@@ -496,6 +508,7 @@ in {
     }
 
     filechooser checkbutton check:checked,
+    filechooser checkbutton > check:checked,
     filechooser actionbar checkbutton check:checked,
     filechooser .dialog-action-box checkbutton check:checked {
       background-color: @portal_accent;
@@ -1330,6 +1343,38 @@ in {
     scrollbar slider:hover {
       background-image: linear-gradient(to bottom, @primary_color, @tertiary_color);
     }
+  '';
+
+  xdg.configFile."caelestia/templates/qbittorrent.qss".text = ''
+    QWidget { background-color: #{{ surface.hex }}; color: #{{ onSurface.hex }}; }
+    QMainWindow, QDialog, QFrame, QScrollArea { background-color: #{{ surface.hex }}; }
+    QToolBar, QStatusBar, QMenuBar { background-color: #{{ surfaceContainerLow.hex }}; border: 0; border-bottom: 1px solid #{{ outlineVariant.hex }}; }
+    QTabWidget::pane { background-color: #{{ surface.hex }}; border: 1px solid #{{ outlineVariant.hex }}; }
+    QTabBar::tab { padding: 7px 14px; color: #{{ onSurfaceVariant.hex }}; background-color: #{{ surfaceContainerLow.hex }}; border: 0; border-bottom: 3px solid transparent; }
+    QTabBar::tab:hover { color: #{{ onSurface.hex }}; background-color: #{{ surfaceContainer.hex }}; border-bottom-color: #{{ tertiary.hex }}; }
+    QTabBar::tab:selected { color: #{{ onSurface.hex }}; background-color: #{{ surfaceContainerHigh.hex }}; border-bottom-color: #{{ primary.hex }}; }
+    QPushButton, QToolButton, QComboBox, QLineEdit { min-height: 30px; padding: 4px 10px; background-color: #{{ surfaceContainer.hex }}; border: 1px solid #{{ outlineVariant.hex }}; border-radius: 7px; }
+    QPushButton:hover, QToolButton:hover, QComboBox:hover, QLineEdit:focus { border-color: #{{ primary.hex }}; background-color: #{{ surfaceContainerHigh.hex }}; }
+    QHeaderView::section { padding: 6px 10px; background-color: #{{ surfaceContainerLow.hex }}; color: #{{ onSurface.hex }}; border: 0; border-right: 1px solid #{{ outlineVariant.hex }}; border-bottom: 1px solid #{{ outlineVariant.hex }}; }
+    QTreeView::item { padding: 5px; border: 0; }
+    QTreeView::item:hover { background-color: #{{ surfaceContainer.hex }}; }
+    QTreeView::item:selected { background-color: #{{ primaryContainer.hex }}; color: #{{ onPrimaryContainer.hex }}; }
+    QProgressBar { border: 1px solid #{{ outlineVariant.hex }}; border-radius: 5px; background-color: #{{ surfaceContainerHigh.hex }}; text-align: center; }
+    QProgressBar::chunk { background-color: #{{ primary.hex }}; border-radius: 4px; }
+  '';
+
+  xdg.configFile."caelestia/templates/qbittorrent.json".text = ''
+    { "colors": {
+      "Palette.Window": "#{{ surface.hex }}", "Palette.WindowText": "#{{ onSurface.hex }}",
+      "Palette.Base": "#{{ surfaceContainerLow.hex }}", "Palette.AlternateBase": "#{{ surfaceContainer.hex }}",
+      "Palette.Text": "#{{ onSurface.hex }}", "Palette.ToolTipBase": "#{{ inverseSurface.hex }}", "Palette.ToolTipText": "#{{ inverseOnSurface.hex }}",
+      "Palette.Highlight": "#{{ primary.hex }}", "Palette.HighlightedText": "#{{ onPrimary.hex }}",
+      "Palette.Button": "#{{ surfaceContainer.hex }}", "Palette.ButtonText": "#{{ onSurface.hex }}",
+      "Palette.Link": "#{{ primary.hex }}", "Palette.LinkVisited": "#{{ tertiary.hex }}",
+      "Palette.Light": "#{{ surfaceContainerHighest.hex }}", "Palette.Midlight": "#{{ surfaceContainerHigh.hex }}", "Palette.Mid": "#{{ outlineVariant.hex }}", "Palette.Dark": "#{{ surfaceDim.hex }}", "Palette.Shadow": "#{{ shadow.hex }}",
+      "Log.Time": "#{{ onSurfaceVariant.hex }}", "Log.Normal": "#{{ onSurface.hex }}", "Log.Info": "#{{ primary.hex }}", "Log.Warning": "#{{ secondary.hex }}", "Log.Critical": "#{{ error.hex }}", "Log.BannedPeer": "#{{ error.hex }}",
+      "TransferList.Downloading": "#{{ primary.hex }}", "TransferList.StalledDownloading": "#{{ onSurfaceVariant.hex }}", "TransferList.DownloadingMetadata": "#{{ tertiary.hex }}", "TransferList.ForcedDownloading": "#{{ primary.hex }}", "TransferList.Allocating": "#{{ secondary.hex }}", "TransferList.Uploading": "#{{ tertiary.hex }}", "TransferList.StalledUploading": "#{{ onSurfaceVariant.hex }}", "TransferList.ForcedUploading": "#{{ tertiary.hex }}", "TransferList.QueuedDownloading": "#{{ secondary.hex }}", "TransferList.QueuedUploading": "#{{ secondary.hex }}", "TransferList.CheckingDownloading": "#{{ tertiary.hex }}", "TransferList.CheckingUploading": "#{{ tertiary.hex }}", "TransferList.CheckingResumeData": "#{{ tertiary.hex }}", "TransferList.PausedDownloading": "#{{ onSurfaceVariant.hex }}", "TransferList.PausedUploading": "#{{ onSurfaceVariant.hex }}", "TransferList.Moving": "#{{ secondary.hex }}", "TransferList.MissingFiles": "#{{ error.hex }}", "TransferList.Error": "#{{ error.hex }}"
+    } }
   '';
 
   xdg.configFile."caelestia/templates/pavucontrol-qt.qss".text = ''

@@ -1,0 +1,6 @@
+QWidget { background-color: #{{ surface.hex }}; color: #{{ onSurface.hex }}; }
+QToolBar, QStatusBar { background-color: #{{ surfaceContainerLow.hex }}; border: 0; }
+QTabBar::tab { padding: 7px 14px; color: #{{ onSurfaceVariant.hex }}; background-color: #{{ surfaceContainerLow.hex }}; border-bottom: 3px solid transparent; }
+QTabBar::tab:selected { color: #{{ onSurface.hex }}; background-color: #{{ surfaceContainerHigh.hex }}; border-bottom-color: #{{ primary.hex }}; }
+QPushButton, QToolButton, QComboBox, QLineEdit { min-height: 30px; padding: 4px 10px; background-color: #{{ surfaceContainer.hex }}; border: 1px solid #{{ outlineVariant.hex }}; border-radius: 7px; }
+QTreeView::item:selected { background-color: #{{ primaryContainer.hex }}; color: #{{ onPrimaryContainer.hex }}; }

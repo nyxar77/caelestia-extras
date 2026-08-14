@@ -17,3 +17,84 @@ QPushButton:checked {
   background-color: #{{ primary.hex }};
   border-color: #{{ primary.hex }};
 }
+QDialog#MainWindow,
+QScrollArea,
+QScrollArea > QWidget,
+QWidget#streamsVBox,
+QWidget#recsVBox,
+QWidget#sinksVBox,
+QWidget#sourcesVBox,
+QWidget#cardsVBox {
+  background-color: #{{ surface.hex }};
+  color: #{{ onSurface.hex }};
+}
+
+QTabWidget#notebook::pane {
+  background-color: #{{ surface.hex }};
+  border: 0;
+  border-top: 1px solid #{{ outlineVariant.hex }};
+}
+
+QTabBar::tab {
+  min-width: 112px;
+  min-height: 34px;
+  padding: 7px 14px;
+  color: #{{ onSurfaceVariant.hex }};
+  background-color: #{{ surfaceContainerLow.hex }};
+  border: 0;
+  border-bottom: 3px solid transparent;
+}
+
+QTabBar::tab:hover {
+  color: #{{ onSurface.hex }};
+  background-color: #{{ surfaceContainer.hex }};
+  border-bottom-color: #{{ tertiary.hex }};
+}
+
+QTabBar::tab:selected {
+  color: #{{ onSurface.hex }};
+  background-color: #{{ surfaceContainerHigh.hex }};
+  border-bottom-color: #{{ primary.hex }};
+}
+
+QWidget#StreamWidget,
+QWidget#DeviceWidget,
+QWidget#CardWidget {
+  margin: 6px;
+  padding: 12px;
+  color: #{{ onSurface.hex }};
+  background-color: #{{ surfaceContainerLow.hex }};
+  border: 1px solid #{{ outlineVariant.hex }};
+  border-radius: 10px;
+}
+
+QLabel { color: #{{ onSurface.hex }}; background: transparent; }
+QLabel#nameLabel,
+QLabel#channelLabel,
+QLabel#volumeLabel,
+QLabel#directionLabel { color: #{{ onSurfaceVariant.hex }}; }
+
+QToolButton,
+QComboBox,
+QSpinBox {
+  min-height: 32px;
+  padding: 5px 10px;
+  color: #{{ onSurface.hex }};
+  background-color: #{{ surfaceContainerHigh.hex }};
+  border: 1px solid #{{ outlineVariant.hex }};
+  border-radius: 8px;
+}
+
+QToolButton:hover,
+QComboBox:hover,
+QSpinBox:hover { border-color: #{{ tertiary.hex }}; }
+QToolButton:checked { color: #{{ onPrimary.hex }}; background-color: #{{ primary.hex }}; border-color: #{{ primary.hex }}; }
+QToolButton#muteToggleButton:checked { color: #{{ onError.hex }}; background-color: #{{ error.hex }}; border-color: #{{ error.hex }}; }
+
+QSlider::groove:horizontal { height: 6px; background-color: #{{ surfaceContainerHighest.hex }}; border-radius: 3px; }
+QSlider::sub-page:horizontal { background-color: #{{ primary.hex }}; border-radius: 3px; }
+QSlider::handle:horizontal { width: 16px; margin: -5px 0; background-color: #{{ primary.hex }}; border: 2px solid #{{ onPrimary.hex }}; border-radius: 8px; }
+
+QScrollBar:vertical { width: 10px; background: transparent; border: 0; }
+QScrollBar::handle:vertical { min-height: 28px; background-color: #{{ outlineVariant.hex }}; border-radius: 5px; }
+QScrollBar::handle:vertical:hover { background-color: #{{ tertiary.hex }}; }

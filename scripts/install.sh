@@ -5,7 +5,7 @@ umask 022
 
 usage() {
   printf '%s\n' \
-    "Usage: scripts/install.sh [install|update] [--enable cursor,gtk,hyprtoolkit,portal]" \
+    "Usage: scripts/install.sh [install|update] [--enable cursor,gtk,hyprtoolkit,qbittorrent,portal]" \
     "" \
     "Builds the current checkout, installs managed files, and preserves user configuration." \
     "Use --enable after configuring the integrations you want to run." \
@@ -159,18 +159,20 @@ else
   create_config=false
 fi
 
-for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
+for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
   stage_managed \
     "$repo_dir/assets/manual/templates/$template" \
     "templates/$template"
 done
 
-stage_managed \
-  "$repo_dir/assets/manual/theme/base-dark.css" \
-  "theme/base-dark.css"
-stage_managed \
-  "$repo_dir/assets/manual/theme/base-light.css" \
-  "theme/base-light.css"
+for version in gtk-3.0 gtk-4.0; do
+  stage_managed \
+    "$repo_dir/assets/manual/theme/base-dark.css" \
+    "theme/$version/base-dark.css"
+  stage_managed \
+    "$repo_dir/assets/manual/theme/base-light.css" \
+    "theme/$version/base-light.css"
+done
 
 render_staged \
   "$repo_dir/assets/manual/portal-qt/qt6ct.conf.in" \
@@ -199,17 +201,22 @@ else
   printf 'keeping user config: %s\n' "$config_file"
 fi
 
-for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
+for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
   commit_managed \
     "templates/$template" \
     "$config_home/caelestia/templates/$template"
 done
-commit_managed \
-  "theme/base-dark.css" \
-  "$data_home/themes/$portal_theme_name/gtk-3.0/base-dark.css"
-commit_managed \
-  "theme/base-light.css" \
-  "$data_home/themes/$portal_theme_name/gtk-3.0/base-light.css"
+link_managed \
+  "$theme_dir/prismlauncher.json" \
+  "$data_home/PrismLauncher/themes/caelestia-breeze/theme.json"
+for version in gtk-3.0 gtk-4.0; do
+  commit_managed \
+    "theme/$version/base-dark.css" \
+    "$data_home/themes/$portal_theme_name/$version/base-dark.css"
+  commit_managed \
+    "theme/$version/base-light.css" \
+    "$data_home/themes/$portal_theme_name/$version/base-light.css"
+done
 commit_managed \
   "portal-qt/qt6ct/qt6ct.conf" \
   "$config_home/portal-qt/qt6ct/qt6ct.conf"
@@ -229,7 +236,7 @@ done
 printf '%s complete: %s\n' "$mode" "$binary"
 
 if [ -z "$enable" ]; then
-  printf '%s\n' "No services enabled. Configure the integrations, then rerun with --enable cursor,gtk,hyprtoolkit,portal."
+  printf '%s\n' "No services enabled. Configure the integrations, then rerun with --enable cursor,gtk,hyprtoolkit,qbittorrent,portal."
   exit 0
 fi
 
@@ -239,14 +246,14 @@ systemctl --user daemon-reload
 
 old_ifs=$IFS
 if [ "$enable" = "all" ]; then
-  enable=cursor,gtk,hyprtoolkit,portal
+  enable=cursor,gtk,hyprtoolkit,qbittorrent,portal
 fi
 IFS=,
 set -- $enable
 IFS=$old_ifs
 for integration in "$@"; do
   case "$integration" in
-    cursor|gtk|hyprtoolkit|portal)
+    cursor|gtk|hyprtoolkit|qbittorrent|portal)
       path_unit="caelestia-extras-$integration.path"
       service_unit="caelestia-extras-$integration.service"
       ;;

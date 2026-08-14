@@ -34,6 +34,19 @@ active Hyprtoolkit config path.
 `pavucontrol` launches the configured `pavucontrol-qt` command. If Caelestia
 generated a stylesheet, it is passed to the application.
 
+## qBittorrent
+
+`qbittorrent sync` builds a `.qbtheme` bundle from the active palette, including
+its palette, log, and transfer-state colours. It changes only qBittorrent's
+custom-theme settings and does nothing when qBittorrent or `rcc` is unavailable.
+Restart qBittorrent after a sync.
+
+## PrismLauncher
+
+Enabling `prismlauncher` writes a generated native theme into PrismLauncher’s
+theme directory. It does not install PrismLauncher; select `Caelestia Breeze`
+in PrismLauncher if it is not already selected.
+
 ## XDG portals
 
 `portal sync` copies the generated GTK and Qt files into the portal-specific

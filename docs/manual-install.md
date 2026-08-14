@@ -12,6 +12,7 @@ use:
 - GTK: `dconf`
 - XCursor fallback: `cbmp` and `ctgen`
 - pavucontrol: `pavucontrol-qt`
+- qBittorrent: `qbittorrent` and Qt's `rcc`
 
 ## Install or update
 
@@ -53,14 +54,17 @@ Edit the config first, then check it:
 Enable only the integrations you configured:
 
 ```sh
-./scripts/install.sh --enable cursor,gtk
+./scripts/install.sh --enable cursor,gtk,qbittorrent
 ```
 
-Valid names are `cursor`, `gtk`, `hyprtoolkit`, and `portal`. Use `all` for all
-four. The script enables the matching path units and runs an initial sync.
+Valid names are `cursor`, `gtk`, `hyprtoolkit`, `qbittorrent`, and `portal`.
+Use `all` for all five. The script enables the matching path units and runs an
+initial sync.
 
 `pavucontrol` has no background service; run `caelestia-extras pavucontrol`
 when you want it.
+
+qBittorrent is updated by a path unit but is not restarted for you.
 
 Portal service drop-ins take effect after the next login. The script does not
 restart portal processes for you.

@@ -60,6 +60,8 @@ test -x "$test_dir/bin/caelestia-extras"
 test -f "$config_file"
 test -L "$test_dir/config/caelestia/templates/gtk-portal.css"
 test -L "$test_dir/config/systemd/user/caelestia-extras-gtk.path"
+test -L "$test_dir/data/themes/Caelestia-Portal/gtk-4.0/base-dark.css"
+test -L "$test_dir/data/PrismLauncher/themes/caelestia-breeze/theme.json"
 
 if TEST_INTERRUPT_GO=1 \
   HOME="$test_dir/cancel/home" \

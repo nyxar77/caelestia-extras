@@ -34,6 +34,7 @@ func TestSyncPortalCopiesGeneratedFiles(t *testing.T) {
 
 	checks := map[string]string{
 		filepath.Join(dataHome, "themes", "Caelestia-Portal", "gtk-3.0", "gtk.css"): "portal",
+		filepath.Join(dataHome, "themes", "Caelestia-Portal", "gtk-4.0", "gtk.css"): "portal",
 		filepath.Join(configHome, "gtk-3.0", "gtk.css"):                             "global",
 		filepath.Join(configHome, "gtk-4.0", "gtk.css"):                             "global",
 		filepath.Join(configHome, "portal-qt", "qt6ct", "colors", "caelestia.conf"): "palette",
@@ -53,13 +54,17 @@ func TestSyncPortalRemovesStalePortalOverride(t *testing.T) {
 	configHome := filepath.Join(root, "config")
 	dataHome := filepath.Join(root, "data")
 	write(t, filepath.Join(theme, "gtk.css"), "generic")
-	portalGTK := filepath.Join(dataHome, "themes", "Caelestia-Portal", "gtk-3.0", "gtk.css")
-	write(t, portalGTK, "generic")
+	for _, version := range []string{"gtk-3.0", "gtk-4.0"} {
+		write(t, filepath.Join(dataHome, "themes", "Caelestia-Portal", version, "gtk.css"), "generic")
+	}
 
 	if err := SyncPortal(config.Portal{ThemeDir: theme, ConfigHome: configHome, DataHome: dataHome, ThemeName: "Caelestia-Portal"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(portalGTK); !os.IsNotExist(err) {
-		t.Fatalf("stale portal override still exists: %v", err)
+	for _, version := range []string{"gtk-3.0", "gtk-4.0"} {
+		portalGTK := filepath.Join(dataHome, "themes", "Caelestia-Portal", version, "gtk.css")
+		if _, err := os.Stat(portalGTK); !os.IsNotExist(err) {
+			t.Fatalf("stale portal override still exists: %v", err)
+		}
 	}
 }

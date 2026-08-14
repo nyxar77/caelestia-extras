@@ -18,6 +18,7 @@ type Config struct {
 	GTK         *GTK         `toml:"gtk"`
 	Hyprtoolkit *Hyprtoolkit `toml:"hyprtoolkit"`
 	Pavucontrol *Pavucontrol `toml:"pavucontrol"`
+	QBittorrent *QBittorrent `toml:"qbittorrent"`
 	Portal      *Portal      `toml:"portal"`
 }
 
@@ -52,6 +53,14 @@ type Hyprtoolkit struct {
 
 type Pavucontrol struct {
 	Command string `toml:"command"`
+}
+
+type QBittorrent struct {
+	Command    string `toml:"command"`
+	RCCCommand string `toml:"rcc_command"`
+	ThemeDir   string `toml:"theme_dir"`
+	ThemeFile  string `toml:"theme_file"`
+	ConfigFile string `toml:"config_file"`
 }
 
 type Portal struct {
@@ -121,6 +130,23 @@ func Load(path string) (Config, error) {
 	if config.Pavucontrol != nil && config.Pavucontrol.Command == "" {
 		config.Pavucontrol.Command = "pavucontrol-qt"
 	}
+	if config.QBittorrent != nil {
+		if config.QBittorrent.Command == "" {
+			config.QBittorrent.Command = "qbittorrent"
+		}
+		if config.QBittorrent.RCCCommand == "" {
+			config.QBittorrent.RCCCommand = "rcc"
+		}
+		if config.QBittorrent.ThemeDir == "" {
+			config.QBittorrent.ThemeDir = filepath.Join(xdg("XDG_STATE_HOME", ".local/state"), "caelestia", "theme")
+		}
+		if config.QBittorrent.ThemeFile == "" {
+			config.QBittorrent.ThemeFile = filepath.Join(xdg("XDG_DATA_HOME", ".local/share"), "caelestia-extras", "qbittorrent", "caelestia.qbtheme")
+		}
+		if config.QBittorrent.ConfigFile == "" {
+			config.QBittorrent.ConfigFile = filepath.Join(xdg("XDG_CONFIG_HOME", ".config"), "qBittorrent", "qBittorrent.conf")
+		}
+	}
 	if config.Portal != nil {
 		if config.Portal.ThemeDir == "" {
 			config.Portal.ThemeDir = filepath.Join(xdg("XDG_STATE_HOME", ".local/state"), "caelestia", "theme")
@@ -189,9 +215,9 @@ func (c Config) Validate() error {
 	}
 	if c.Pavucontrol != nil {
 		enabled++
-		if err := commandAvailable(c.Pavucontrol.Command); err != nil {
-			problems = append(problems, err.Error())
-		}
+	}
+	if c.QBittorrent != nil {
+		enabled++
 	}
 	if c.Portal != nil {
 		enabled++

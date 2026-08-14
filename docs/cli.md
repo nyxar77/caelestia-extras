@@ -14,6 +14,7 @@ cursor sync-xcursor      Build the XCursor fallback
 gtk sync                 Sync the GTK theme and colour preference
 hyprtoolkit sync         Apply generated Hyprtoolkit configuration
 pavucontrol [arguments]  Launch the configured volume mixer
+qbittorrent sync         Build and select the qBittorrent theme
 portal sync              Apply generated portal themes
 config validate          Check files, tools, and enabled integrations
 version                  Print the version

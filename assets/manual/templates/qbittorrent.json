@@ -1,0 +1,8 @@
+{ "colors": {
+  "Palette.Window": "#{{ surface.hex }}", "Palette.WindowText": "#{{ onSurface.hex }}",
+  "Palette.Base": "#{{ surfaceContainerLow.hex }}", "Palette.AlternateBase": "#{{ surfaceContainer.hex }}",
+  "Palette.Text": "#{{ onSurface.hex }}", "Palette.Highlight": "#{{ primary.hex }}", "Palette.HighlightedText": "#{{ onPrimary.hex }}",
+  "Palette.Button": "#{{ surfaceContainer.hex }}", "Palette.ButtonText": "#{{ onSurface.hex }}",
+  "Log.Time": "#{{ onSurfaceVariant.hex }}", "Log.Normal": "#{{ onSurface.hex }}", "Log.Info": "#{{ primary.hex }}", "Log.Warning": "#{{ secondary.hex }}", "Log.Critical": "#{{ error.hex }}", "Log.BannedPeer": "#{{ error.hex }}",
+  "TransferList.Downloading": "#{{ primary.hex }}", "TransferList.Uploading": "#{{ tertiary.hex }}", "TransferList.Error": "#{{ error.hex }}", "TransferList.MissingFiles": "#{{ error.hex }}"
+} }

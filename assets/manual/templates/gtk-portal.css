@@ -2,6 +2,7 @@
 
 @define-color portal_accent #{{ primary.hex }};
 @define-color portal_accent_fg #{{ onPrimary.hex }};
+@define-color portal_tertiary #{{ tertiary.hex }};
 @define-color portal_bg #{{ surface.hex }};
 @define-color portal_fg #{{ onSurface.hex }};
 @define-color portal_panel #{{ surfaceContainer.hex }};
@@ -15,8 +16,10 @@ filechooser {
 
 headerbar,
 .titlebar {
+  min-height: 48px;
   color: @portal_fg;
   background-color: @portal_panel;
+  background-image: linear-gradient(110deg, alpha(@portal_accent, 0.20), alpha(@portal_tertiary, 0.10) 58%, transparent);
   border-bottom: 1px solid @portal_border;
 }
 
@@ -36,6 +39,35 @@ entry:focus {
 
 button.suggested-action,
 button.default {
+  padding-left: 20px;
+  padding-right: 20px;
+  color: @portal_accent_fg;
+  background-image: linear-gradient(135deg, @portal_accent, @portal_tertiary);
+  border-color: @portal_accent;
+}
+
+filechooser placessidebar row {
+  min-height: 40px;
+  margin: 4px 6px;
+  padding: 7px 12px;
+  border-radius: 9px;
+}
+
+filechooser placessidebar row:selected,
+filechooser treeview.view:selected {
+  color: @portal_fg;
+  background-color: alpha(@portal_accent, 0.28);
+  box-shadow: inset 4px 0 @portal_accent;
+}
+
+filechooser checkbutton check,
+filechooser checkbutton > check {
+  border-color: @portal_border;
+  border-radius: 4px;
+}
+
+filechooser checkbutton check:checked,
+filechooser checkbutton > check:checked {
   color: @portal_accent_fg;
   background-color: @portal_accent;
   border-color: @portal_accent;

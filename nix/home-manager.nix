@@ -42,6 +42,15 @@
     // lib.optionalAttrs cfg.pavucontrol.enable {
       pavucontrol.command = cfg.pavucontrol.command;
     }
+    // lib.optionalAttrs cfg.qbittorrent.enable {
+      qbittorrent = {
+        command = cfg.qbittorrent.command;
+        rcc_command = cfg.qbittorrent.rccCommand;
+        theme_dir = cfg.qbittorrent.themeDir;
+        theme_file = cfg.qbittorrent.themeFile;
+        config_file = cfg.qbittorrent.configFile;
+      };
+    }
     // lib.optionalAttrs cfg.portal.enable {
       portal = {
         theme_dir = cfg.portal.themeDir;
@@ -136,6 +145,23 @@ in {
       enable = lib.mkEnableOption "Caelestia-themed pavucontrol-qt launcher";
       command = lib.mkOption { type = lib.types.str; default = "pavucontrol-qt"; };
     };
+    prismlauncher = {
+      enable = lib.mkEnableOption "Caelestia PrismLauncher theme";
+      themeDir = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.xdg.stateHome}/caelestia/theme";
+        description = "Directory containing the generated PrismLauncher theme.";
+      };
+      themeName = lib.mkOption { type = lib.types.str; default = "caelestia-breeze"; };
+    };
+    qbittorrent = {
+      enable = lib.mkEnableOption "Caelestia qBittorrent theme";
+      command = lib.mkOption { type = lib.types.str; default = "qbittorrent"; };
+      rccCommand = lib.mkOption { type = lib.types.str; default = "rcc"; };
+      themeDir = lib.mkOption { type = lib.types.str; default = "${config.xdg.stateHome}/caelestia/theme"; };
+      themeFile = lib.mkOption { type = lib.types.str; default = "${config.xdg.dataHome}/caelestia-extras/qbittorrent/caelestia.qbtheme"; };
+      configFile = lib.mkOption { type = lib.types.str; default = "${config.xdg.configHome}/qBittorrent/qBittorrent.conf"; };
+    };
     portal = {
       enable = lib.mkEnableOption "Caelestia-themed XDG desktop portals";
       themeDir = lib.mkOption {
@@ -172,8 +198,36 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [package] ++ lib.optionals cfg.pavucontrol.enable [pkgs.lxqt.pavucontrol-qt];
-    xdg.configFile."caelestia-extras/config.toml".source = configFile;
+    home.packages = [package];
+    xdg.configFile = {
+      "caelestia-extras/config.toml".source = configFile;
+    } // lib.optionalAttrs cfg.prismlauncher.enable {
+      "caelestia/templates/prismlauncher.json".text = ''
+        {
+          "name": "Caelestia Breeze",
+          "widgets": "Breeze",
+          "colors": {
+            "Window": "#{{ surface.hex }}", "WindowText": "#{{ onSurface.hex }}",
+            "Base": "#{{ surfaceContainerLowest.hex }}", "AlternateBase": "#{{ surfaceContainerLow.hex }}",
+            "ToolTipBase": "#{{ inverseSurface.hex }}", "ToolTipText": "#{{ inverseOnSurface.hex }}",
+            "Text": "#{{ onSurface.hex }}", "Button": "#{{ surfaceContainerHighest.hex }}", "ButtonText": "#{{ onSurface.hex }}",
+            "BrightText": "#{{ error.hex }}", "Link": "#{{ primary.hex }}", "Highlight": "#{{ primary.hex }}", "HighlightedText": "#{{ onPrimary.hex }}",
+            "fadeAmount": 0.42, "fadeColor": "#{{ surface.hex }}"
+          },
+          "logColors": {
+            "Message": "#{{ onSurface.hex }}", "Launcher": "#{{ primary.hex }}", "Debug": "#{{ onSurfaceVariant.hex }}",
+            "Warning": "#{{ tertiary.hex }}", "Error": "#{{ error.hex }}", "Fatal": "#{{ onErrorContainer.hex }}",
+            "MessageHighlight": "#{{ surfaceContainerLow.hex }}", "LauncherHighlight": "#{{ primaryContainer.hex }}",
+            "DebugHighlight": "#{{ surfaceContainer.hex }}", "WarningHighlight": "#{{ tertiaryContainer.hex }}",
+            "ErrorHighlight": "#{{ errorContainer.hex }}", "FatalHighlight": "#{{ errorContainer.hex }}"
+          }
+        }
+      '';
+    };
+    xdg.dataFile = lib.mkIf cfg.prismlauncher.enable {
+      "PrismLauncher/themes/${cfg.prismlauncher.themeName}/theme.json".source =
+        config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.json";
+    };
     xdg.desktopEntries =
       lib.optionalAttrs cfg.gtk.enable (lib.mapAttrs (_: entry: {
         inherit (entry) name exec icon comment genericName categories mimeType startupNotify;
@@ -194,6 +248,9 @@ in {
     );
     home.activation.caelestiaExtrasHyprtoolkit = lib.mkIf cfg.hyprtoolkit.enable (
       lib.hm.dag.entryAfter ["writeBoundary"] "${command} hyprtoolkit sync"
+    );
+    home.activation.caelestiaExtrasQBittorrent = lib.mkIf cfg.qbittorrent.enable (
+      lib.hm.dag.entryAfter ["writeBoundary"] "${command} qbittorrent sync"
     );
     systemd.user.services = lib.mkMerge [
       (lib.mkIf cfg.cursor.enable {
@@ -246,6 +303,16 @@ in {
           Install.WantedBy = ["graphical-session.target"];
         };
       })
+      (lib.mkIf cfg.qbittorrent.enable {
+        caelestia-extras-qbittorrent = {
+          Unit = { Description = "Sync qBittorrent with Caelestia"; After = ["graphical-session.target"]; };
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${command} qbittorrent sync";
+          };
+          Install.WantedBy = ["graphical-session.target"];
+        };
+      })
     ];
     systemd.user.paths = lib.mkMerge [
       (lib.mkIf cfg.cursor.enable {
@@ -273,6 +340,15 @@ in {
             "${cfg.portal.themeDir}/gtk-global.css"
             "${cfg.portal.themeDir}/qt6ct-caelestia.conf"
             "${cfg.portal.themeDir}/qt6ct-portal.qss"
+          ];
+          Install.WantedBy = ["graphical-session.target"];
+        };
+      })
+      (lib.mkIf cfg.qbittorrent.enable {
+        caelestia-extras-qbittorrent = {
+          Path.PathChanged = [
+            "${cfg.qbittorrent.themeDir}/qbittorrent.qss"
+            "${cfg.qbittorrent.themeDir}/qbittorrent.json"
           ];
           Install.WantedBy = ["graphical-session.target"];
         };

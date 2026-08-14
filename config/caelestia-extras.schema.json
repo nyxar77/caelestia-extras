@@ -69,6 +69,17 @@
         "command": {"type": "string", "default": "pavucontrol-qt"}
       }
     },
+    "qbittorrent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command": {"type": "string", "default": "qbittorrent"},
+        "rcc_command": {"type": "string", "default": "rcc"},
+        "theme_dir": {"type": "string", "description": "Directory containing generated qBittorrent theme files."},
+        "theme_file": {"type": "string", "description": "Generated qBittorrent theme bundle."},
+        "config_file": {"type": "string", "description": "qBittorrent configuration file."}
+      }
+    },
     "portal": {
       "type": "object",
       "additionalProperties": false,

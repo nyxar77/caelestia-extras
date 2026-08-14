@@ -1,7 +1,7 @@
 # caelestia-extras
 
 Small Linux integrations for [Caelestia](https://github.com/caelestia-dots/shell).
-It keeps the cursor, GTK, Hyprtoolkit, pavucontrol, and XDG portals in step
+It keeps the cursor, GTK, Hyprtoolkit, pavucontrol, qBittorrent, and XDG portals in step
 with Caelestia's active scheme.
 
 The current compositor backend is Hyprland. The shared integrations are kept
@@ -24,6 +24,8 @@ programs.caelestia-extras = {
   gtk.enable = true;
   hyprtoolkit.enable = true;
   pavucontrol.enable = true;
+  prismlauncher.enable = true;
+  qbittorrent.enable = true;
   portal.enable = true;
 };
 ```
