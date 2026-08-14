@@ -5,6 +5,18 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "compositor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "type": "string",
+          "enum": ["hyprland"],
+          "default": "hyprland",
+          "description": "Compositor backend used for compositor-specific actions."
+        }
+      }
+    },
     "scheme": {
       "type": "object",
       "additionalProperties": false,

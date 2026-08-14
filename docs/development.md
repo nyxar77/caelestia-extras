@@ -17,6 +17,7 @@ The main pieces are:
 
 - `cmd/caelestia-extras` — CLI and shell completion output
 - `internal/config` — TOML loading, defaults, validation, and schema tests
+- `internal/compositor` — compositor-specific actions behind a small backend interface
 - `internal/cursor` — cursor generation and installation
 - `internal/integration` — GTK, Hyprtoolkit, pavucontrol, and portal actions
 - `internal/scheme` — Caelestia scheme parsing

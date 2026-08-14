@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/nyxar77/caelestia-extras/internal/compositor"
 	"github.com/nyxar77/caelestia-extras/internal/config"
 	"github.com/nyxar77/caelestia-extras/internal/cursor"
 	"github.com/nyxar77/caelestia-extras/internal/integration"
@@ -87,13 +88,17 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 		if configFile.Cursor == nil {
 			return fmt.Errorf("cursor is disabled in %q; add a [cursor] section", *configPath)
 		}
+		backend, err := compositor.New(configFile.Compositor.Backend)
+		if err != nil {
+			return err
+		}
 		if len(args) != 2 {
 			return usage("cursor expects one of: sync, sync-xcursor")
 		}
 		switch args[1] {
 		case "sync":
 			return runIntegration("cursor sync", func() error {
-				return cursor.Sync(*configFile.Cursor, configFile.Scheme.File)
+				return cursor.Sync(*configFile.Cursor, configFile.Scheme.File, backend)
 			})
 		case "sync-xcursor":
 			return runIntegration("cursor XCursor sync", func() error {
@@ -130,7 +135,17 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 			return integration.LaunchPavucontrol(*configFile.Pavucontrol, args[1:])
 		})
 	case "config":
-		return configFile.Validate()
+		if err := configFile.Validate(); err != nil {
+			return err
+		}
+		backend, err := compositor.New(configFile.Compositor.Backend)
+		if err != nil {
+			return err
+		}
+		if configFile.Cursor != nil {
+			return backend.Validate()
+		}
+		return nil
 	case "portal":
 		if configFile.Portal == nil {
 			return fmt.Errorf("portal sync is disabled in %q; add a [portal] section", *configPath)

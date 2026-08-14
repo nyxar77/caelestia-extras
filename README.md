@@ -4,6 +4,9 @@ Small Linux integrations for [Caelestia](https://github.com/caelestia-dots/shell
 It keeps the cursor, GTK, Hyprtoolkit, pavucontrol, and XDG portals in step
 with Caelestia's active scheme.
 
+The current compositor backend is Hyprland. The shared integrations are kept
+separate so another compositor can be added without rewriting them.
+
 ## Installation
 
 ### Home Manager

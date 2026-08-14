@@ -1,12 +1,23 @@
 # Integrations
 
+## Compositor support
+
+Extras currently supports the upstream Caelestia Hyprland setup. Niri
+Caelestia shells are separate community ports, not an upstream backend, so
+Extras does not claim Niri support yet.
+
+The code keeps cursor generation and the other shared integrations separate
+from compositor actions. A Niri backend can be added when there is a compatible
+Caelestia port and a clear way to apply its cursor theme.
+
 ## Cursor
 
 `cursor sync` reads Caelestia's active scheme, recolours the Bibata SVGs,
 builds a Hyprcursor theme, and applies it through Hyprland. With
 `xcursor_fallback = true`, it also refreshes the XCursor version.
 
-This is the only integration that needs Hyprland directly.
+This is the only integration that needs the compositor directly. Today that
+backend is Hyprland.
 
 ## GTK
 

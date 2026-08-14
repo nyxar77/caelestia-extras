@@ -12,6 +12,7 @@
   '';
   configFile = toml.generate "caelestia-extras.toml" (
     {
+      compositor.backend = cfg.compositor.backend;
       scheme.file = cfg.schemeFile;
     }
     // lib.optionalAttrs cfg.cursor.enable {
@@ -51,14 +52,16 @@
       };
     }
   );
+  compositorRuntime = {
+    hyprland = [pkgs.hyprland];
+  };
   cursorRuntime = with pkgs; [
     coreutils
     dconf
     hyprcursor
-    hyprland
     systemd
     util-linux
-  ] ++ lib.optionals cfg.cursor.xcursorFallback [cbmp clickgen];
+  ] ++ compositorRuntime.${cfg.compositor.backend} ++ lib.optionals cfg.cursor.xcursorFallback [cbmp clickgen];
   gtkRuntime = [pkgs.dconf];
   command = "${package}/bin/caelestia-extras --config ${config.xdg.configHome}/caelestia-extras/config.toml";
 in {
@@ -69,6 +72,11 @@ in {
 
   options.programs.caelestia-extras = {
     enable = lib.mkEnableOption "optional Caelestia integrations";
+    compositor.backend = lib.mkOption {
+      type = lib.types.enum ["hyprland"];
+      default = "hyprland";
+      description = "Compositor backend used for compositor-specific integrations.";
+    };
     schemeFile = lib.mkOption {
       type = lib.types.str;
       default = "${config.xdg.stateHome}/caelestia/scheme.json";

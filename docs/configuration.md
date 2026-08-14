@@ -11,6 +11,9 @@ If `XDG_CONFIG_HOME` is not set, this is `~/.config/caelestia-extras/config.toml
 ## Example
 
 ```toml
+[compositor]
+backend = "hyprland"
+
 [scheme]
 file = "/path/to/caelestia/scheme.json"
 
@@ -47,6 +50,13 @@ defaults below.
 - `xcursor_sizes` — XCursor sizes. Default: `[20, 24, 32]`.
 - `xcursor_fallback` — refresh the XCursor fallback. Default: `false`.
 - `update_gtk` — update the GTK cursor setting. Default: `false`.
+
+### `[compositor]`
+
+- `backend` — compositor-specific backend. Default: `hyprland`.
+
+Keep this explicit. User services do not always receive enough session state
+to detect the compositor reliably.
 
 ### `[gtk]`
 

@@ -73,3 +73,15 @@ func TestExecuteConfigValidate(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestExecuteConfigValidateRejectsUnsupportedBackend(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.toml")
+	contents := "[compositor]\nbackend = \"niri\"\n\n[hyprtoolkit]\n"
+	if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	err := execute([]string{"--config", path, "config", "validate"}, &bytes.Buffer{}, &bytes.Buffer{})
+	if err == nil || !strings.Contains(err.Error(), "unsupported compositor backend") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

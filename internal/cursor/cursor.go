@@ -12,6 +12,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/nyxar77/caelestia-extras/internal/compositor"
 	"github.com/nyxar77/caelestia-extras/internal/config"
 	"github.com/nyxar77/caelestia-extras/internal/scheme"
 	"github.com/pelletier/go-toml/v2"
@@ -34,7 +35,10 @@ type (
 
 var viewbox = regexp.MustCompile(`viewBox="0 0 ([0-9.]+) ([0-9.]+)"`)
 
-func Sync(cursor config.Cursor, schemeFile string) error {
+func Sync(cursor config.Cursor, schemeFile string, backend compositor.Backend) error {
+	if backend == nil {
+		return errors.New("compositor backend is required")
+	}
 	if err := os.MkdirAll(cursor.IconDir, 0o755); err != nil {
 		return err
 	}
@@ -92,7 +96,7 @@ func Sync(cursor config.Cursor, schemeFile string) error {
 				return err
 			}
 		}
-		if err := refreshHyprland(cursor); err != nil {
+		if err := backend.ApplyCursor(compositor.Cursor{Theme: cursor.Theme, Size: cursor.Size}); err != nil {
 			syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
 			return err
 		}
@@ -359,13 +363,6 @@ func updateGTK(cursor config.Cursor) error {
 		return err
 	}
 	return runQuiet("dconf", "write", "/org/gnome/desktop/interface/cursor-size", strconv.Itoa(cursor.Size))
-}
-
-func refreshHyprland(cursor config.Cursor) error {
-	if err := runQuiet("hyprctl", "setcursor", cursor.Theme, strconv.Itoa(cursor.Size)); err != nil {
-		return err
-	}
-	return runQuiet("hyprctl", "eval", "hl.dsp.force_renderer_reload()")
 }
 
 func runQuiet(name string, arguments ...string) error {

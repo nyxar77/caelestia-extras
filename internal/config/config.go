@@ -12,12 +12,17 @@ import (
 )
 
 type Config struct {
+	Compositor  Compositor   `toml:"compositor"`
 	Scheme      Scheme       `toml:"scheme"`
 	Cursor      *Cursor      `toml:"cursor"`
 	GTK         *GTK         `toml:"gtk"`
 	Hyprtoolkit *Hyprtoolkit `toml:"hyprtoolkit"`
 	Pavucontrol *Pavucontrol `toml:"pavucontrol"`
 	Portal      *Portal      `toml:"portal"`
+}
+
+type Compositor struct {
+	Backend string `toml:"backend"`
 }
 
 type Scheme struct {
@@ -72,6 +77,9 @@ func Load(path string) (Config, error) {
 	}
 	if config.Scheme.File == "" {
 		config.Scheme.File = filepath.Join(xdg("XDG_STATE_HOME", ".local/state"), "caelestia", "scheme.json")
+	}
+	if config.Compositor.Backend == "" {
+		config.Compositor.Backend = "hyprland"
 	}
 	if config.Cursor != nil {
 		cursor := config.Cursor
@@ -151,7 +159,7 @@ func (c Config) Validate() error {
 		if err := regularFile(c.Cursor.BuildConfig, "cursor build config"); err != nil {
 			problems = append(problems, err.Error())
 		}
-		for _, command := range []string{"hyprcursor-util", "hyprctl"} {
+		for _, command := range []string{"hyprcursor-util"} {
 			if err := commandAvailable(command); err != nil {
 				problems = append(problems, err.Error())
 			}
