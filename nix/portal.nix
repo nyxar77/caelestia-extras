@@ -65,16 +65,14 @@ in {
 
   xdg.configFile."caelestia/templates/gtk-portal.css".text = ''
     /*
-      GTK 3 portal file chooser only. Caelestia replaces the colours and mode,
-      while Adwaita supplies complete widget geometry and fallback styling.
+      XDG portal file chooser. Adwaita supplies the widget behavior; this keeps
+      the layout compact and uses the scheme only for contrast and state.
     */
 
     @import url("base-{{ mode }}.css");
 
     @define-color portal_accent #{{ primary.hex }};
     @define-color portal_accent_fg #{{ onPrimary.hex }};
-    @define-color portal_secondary #{{ secondary.hex }};
-    @define-color portal_tertiary #{{ tertiary.hex }};
     @define-color portal_window #{{ background.hex }};
     @define-color portal_bg #{{ surface.hex }};
     @define-color portal_fg #{{ onSurface.hex }};
@@ -84,7 +82,6 @@ in {
     @define-color portal_panel_high #{{ surfaceContainerHigh.hex }};
     @define-color portal_muted #{{ onSurfaceVariant.hex }};
     @define-color portal_border #{{ outlineVariant.hex }};
-    @define-color portal_shadow #{{ shadow.hex }};
 
     window.background,
     window {
@@ -93,67 +90,60 @@ in {
       -gtk-icon-theme: "${cfg.iconTheme}";
     }
 
-    window.csd {
-      border-radius: 12px;
-      box-shadow: 0 18px 48px alpha(@portal_shadow, 0.42);
-    }
-
     filechooser {
       color: @portal_fg;
       background-color: @portal_bg;
     }
 
-    headerbar,
-    .titlebar {
-      min-height: 46px;
-      padding: 0 9px;
-      color: @portal_fg;
-      background-color: @portal_panel;
-      background-image: linear-gradient(110deg, alpha(@portal_accent, 0.20), alpha(@portal_tertiary, 0.10) 58%, transparent);
-      border-top: 1px solid alpha(@portal_accent, 0.68);
-      border-bottom: 1px solid alpha(@portal_border, 0.78);
-      box-shadow: inset 0 -1px alpha(@portal_accent, 0.18);
+    /*
+      The chooser is intentionally quieter than the shell: it uses the scheme
+      for contrast and state, not as decoration.  Keep this block last so it
+      also normalises the slightly different GTK 3 and GTK 4 picker trees.
+    */
+    window.csd {
+      border-radius: 10px;
+      box-shadow: none;
     }
 
+    headerbar,
+    .titlebar,
+    headerbar:focus,
+    .titlebar:focus,
     headerbar:backdrop,
     .titlebar:backdrop {
-      color: @portal_muted;
+      min-height: 42px;
+      padding: 0 7px;
+      color: @portal_fg;
       background-color: @portal_panel;
       background-image: none;
-      border-top-color: alpha(@portal_accent, 0.28);
-      box-shadow: inset 0 -1px alpha(@portal_border, 0.7);
+      border-top: 0;
+      border-bottom: 1px solid @portal_border;
+      box-shadow: none;
     }
 
     headerbar button,
     headerbar button.flat,
     .titlebar button,
-    .titlebar button.flat {
-      min-height: 32px;
-      min-width: 34px;
-      margin: 5px 2px;
-      padding: 0 13px;
+    .titlebar button.flat,
+    headerbar button:backdrop,
+    .titlebar button:backdrop {
+      min-height: 28px;
+      min-width: 28px;
+      margin: 3px 2px;
+      padding: 0 9px;
       color: @portal_fg;
-      background-color: alpha(@portal_panel_high, 0.38);
+      background-color: transparent;
       background-image: none;
-      border: 1px solid alpha(@portal_border, 0.62);
-      border-radius: 10px;
+      border: 1px solid transparent;
+      border-radius: 7px;
       box-shadow: none;
-      transition: 160ms ease-out;
     }
 
     headerbar button.text-button:not(.default),
     .titlebar button.text-button:not(.default) {
-      min-width: 78px;
-      padding-left: 18px;
-      padding-right: 18px;
-    }
-
-    headerbar button.image-button,
-    .titlebar button.image-button {
-      min-width: 32px;
-      padding-left: 4px;
-      padding-right: 4px;
-      border-radius: 10px;
+      min-width: 58px;
+      padding-left: 11px;
+      padding-right: 11px;
     }
 
     headerbar button:hover,
@@ -161,42 +151,38 @@ in {
     .titlebar button:hover,
     .titlebar button.flat:hover {
       color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.18);
-      border-color: alpha(@portal_accent, 0.62);
-      box-shadow: 0 2px 7px alpha(@portal_shadow, 0.20);
-    }
-
-    headerbar button:active,
-    headerbar button:checked,
-    .titlebar button:active,
-    .titlebar button:checked {
-      color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.26);
-      border-color: @portal_accent;
+      background-color: @portal_panel_high;
+      border-color: alpha(@portal_border, 0.84);
       box-shadow: none;
     }
 
     headerbar button.default,
     headerbar button.suggested-action,
     .titlebar button.default,
-    .titlebar button.suggested-action {
-      min-width: 72px;
-      padding-left: 18px;
-      padding-right: 18px;
+    .titlebar button.suggested-action,
+    filechooser button.default,
+    filechooser button.suggested-action {
+      min-height: 28px;
+      min-width: 64px;
+      padding-left: 12px;
+      padding-right: 12px;
       color: @portal_accent_fg;
       background-color: @portal_accent;
-      background-image: linear-gradient(135deg, @portal_accent, @portal_tertiary);
+      background-image: none;
       border-color: @portal_accent;
-      box-shadow: inset 0 1px alpha(white, 0.16), 0 3px 10px alpha(@portal_shadow, 0.30);
+      border-radius: 7px;
+      box-shadow: none;
     }
 
     headerbar button.default:hover,
     headerbar button.suggested-action:hover,
     .titlebar button.default:hover,
-    .titlebar button.suggested-action:hover {
+    .titlebar button.suggested-action:hover,
+    filechooser button.default:hover,
+    filechooser button.suggested-action:hover {
       color: @portal_accent_fg;
-      background-color: shade(@portal_tertiary, 1.08);
-      border-color: @portal_tertiary;
+      background-color: shade(@portal_accent, 1.06);
+      border-color: shade(@portal_accent, 1.06);
     }
 
     headerbar button:disabled,
@@ -204,499 +190,201 @@ in {
     headerbar button.suggested-action:disabled,
     .titlebar button:disabled,
     .titlebar button.default:disabled,
-    .titlebar button.suggested-action:disabled {
-      color: alpha(@portal_muted, 0.62);
-      background-color: alpha(@portal_panel_high, 0.34);
-      border-color: alpha(@portal_border, 0.46);
-      box-shadow: none;
-    }
-
-    filechooser pathbar button,
-    filechooser .path-bar button {
-      min-height: 28px;
-      min-width: 28px;
-      padding: 3px 8px;
-      color: @portal_fg;
-      background-color: alpha(@portal_panel, 0.68);
-      border: 1px solid alpha(@portal_border, 0.68);
-      border-radius: 7px;
-      box-shadow: none;
-    }
-
-    /* GTK exposes the breadcrumb buttons as direct pathbar children. */
-    filechooser pathbar > button,
-    filechooser .path-bar > button,
-    filechooser #pathbarbox > button {
-      margin: 0 1px;
+    .titlebar button.suggested-action:disabled,
+    filechooser button:disabled,
+    filechooser button.default:disabled,
+    filechooser button.suggested-action:disabled {
+      color: alpha(@portal_muted, 0.72);
+      background-color: @portal_panel;
       background-image: none;
-    }
-
-    filechooser pathbar button:hover,
-    filechooser .path-bar button:hover {
-      color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.16);
-      border-color: alpha(@portal_accent, 0.64);
-    }
-
-    filechooser pathbar button:checked,
-    filechooser .path-bar button:checked {
-      color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.20);
-      border-color: alpha(@portal_accent, 0.72);
-    }
-
-    filechooser pathbar > button:checked,
-    filechooser .path-bar > button:checked,
-    filechooser #pathbarbox > button:checked {
-      color: @portal_accent_fg;
-      background-color: @portal_accent;
-      border-color: @portal_accent;
+      border-color: alpha(@portal_border, 0.72);
+      box-shadow: none;
     }
 
     filechooser #pathbarbox,
     filechooser #pathbarbox:backdrop {
-      border-bottom-color: @portal_border;
+      padding: 2px 5px;
+      background-color: @portal_bg;
+      border-bottom: 1px solid @portal_border;
     }
 
-    filechooser entry,
-    filechooser searchentry {
-      min-height: 34px;
-      padding: 6px 12px;
+    filechooser pathbar button,
+    filechooser .path-bar button,
+    filechooser pathbar > button,
+    filechooser .path-bar > button,
+    filechooser #pathbarbox > button,
+    filechooser pathbar button:backdrop,
+    filechooser .path-bar button:backdrop {
+      min-height: 26px;
+      min-width: 26px;
+      margin: 1px;
+      padding: 1px 7px;
+      color: @portal_fg;
+      background-color: transparent;
+      background-image: none;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      box-shadow: none;
+    }
+
+    filechooser pathbar button:hover,
+    filechooser .path-bar button:hover,
+    filechooser #pathbarbox > button:hover {
       color: @portal_fg;
       background-color: @portal_panel;
-      border: 1px solid alpha(@portal_border, 0.72);
-      border-radius: 999px;
-      box-shadow: inset 0 1px alpha(@portal_shadow, 0.12);
+      border-color: alpha(@portal_border, 0.82);
     }
 
-    filechooser entry:focus,
-    filechooser searchentry:focus {
-      border-color: @portal_accent;
-      box-shadow: inset 0 0 0 1px alpha(@portal_accent, 0.30), 0 0 0 3px alpha(@portal_accent, 0.12);
+    filechooser pathbar button:checked,
+    filechooser .path-bar button:checked,
+    filechooser pathbar > button:checked,
+    filechooser .path-bar > button:checked,
+    filechooser #pathbarbox > button:checked,
+    filechooser pathbar button:backdrop:checked,
+    filechooser .path-bar button:backdrop:checked {
+      color: @portal_fg;
+      background-color: @portal_panel_high;
+      background-image: none;
+      border-color: alpha(@portal_accent, 0.58);
+      box-shadow: none;
     }
 
     filechooser placessidebar.sidebar,
-    filechooser placessidebar {
-      min-width: 172px;
-      padding: 11px 8px;
+    filechooser placessidebar,
+    filechooser placessidebar.sidebar:backdrop,
+    filechooser placessidebar:backdrop {
+      min-width: 164px;
+      padding: 7px 5px;
       color: @portal_fg;
       background-color: @portal_sidebar;
       background-image: none;
       border-right: 1px solid @portal_border;
     }
 
-    filechooser placessidebar row {
-      min-height: 40px;
-      margin: 4px 6px;
-      padding: 7px 12px;
+    filechooser placessidebar row,
+    filechooser placessidebar row:backdrop {
+      min-height: 34px;
+      margin: 2px 4px;
+      padding: 5px 9px;
       color: @portal_muted;
       background-color: transparent;
-      border-radius: 9px;
+      background-image: none;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      box-shadow: none;
     }
 
     filechooser placessidebar row:hover {
       color: @portal_fg;
-      background-color: alpha(@portal_secondary, 0.16);
-      box-shadow: inset 3px 0 alpha(@portal_secondary, 0.72);
+      background-color: @portal_panel;
+      border-color: alpha(@portal_border, 0.62);
+      box-shadow: none;
     }
 
-    filechooser placessidebar row:selected {
+    filechooser placessidebar row:selected,
+    filechooser placessidebar row:backdrop:selected {
       color: @portal_fg;
-      background-image: linear-gradient(90deg, alpha(@portal_accent, 0.34), alpha(@portal_tertiary, 0.16));
-      box-shadow: inset 4px 0 @portal_accent;
-    }
-
-    filechooser placessidebar row image.sidebar-icon,
-    filechooser placessidebar row label.sidebar-label {
-      color: inherit;
-    }
-
-    filechooser placessidebar row image.sidebar-icon {
-      margin-right: 9px;
-    }
-
-    filechooser .view,
-    filechooser treeview.view,
-    filechooser scrolledwindow,
-    filechooser viewport {
-      color: @portal_fg;
-      background-color: @portal_view;
+      background-color: alpha(@portal_accent, 0.15);
       background-image: none;
+      border-color: alpha(@portal_accent, 0.40);
+      box-shadow: none;
     }
 
-    filechooser placesview,
-    filechooser placesview > viewport,
-    filechooser placesview > scrolledwindow,
-    filechooser placesview list {
+    filechooser treeview.view header button,
+    filechooser treeview.view header button:backdrop {
+      min-height: 32px;
+      padding: 0 10px;
       color: @portal_fg;
-      background-color: @portal_view;
+      background-color: @portal_panel;
       background-image: none;
-    }
-
-    filechooser placesview list row {
-      min-height: 40px;
-      margin: 2px 8px;
-      padding: 6px 10px;
-      color: @portal_fg;
-      background-color: transparent;
-      background-image: none;
-      border-radius: 8px;
-    }
-
-    filechooser placesview list row:hover {
-      background-color: alpha(@portal_accent, 0.12);
-    }
-
-    filechooser placesview list row:selected {
-      color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.22);
-      box-shadow: inset 3px 0 @portal_accent;
-    }
-
-    filechooser placesview list row image,
-    filechooser placesview list row label {
-      color: inherit;
-    }
-
-    filechooser treeview.view header button {
-      min-height: 38px;
-      padding: 0 12px;
-      color: @portal_fg;
-      background-color: alpha(@portal_panel, 0.62);
-      background-image: none;
-      border-top: 1px solid alpha(@portal_border, 0.62);
-      border-bottom: 1px solid alpha(@portal_border, 0.62);
+      border-top: 0;
+      border-bottom: 1px solid @portal_border;
       border-left: 0;
-      border-right: 1px solid alpha(@portal_border, 0.50);
+      border-right: 1px solid @portal_border;
       border-radius: 0;
       box-shadow: none;
     }
 
-    filechooser treeview.view header button:hover {
-      color: @portal_fg;
-      background-color: alpha(@portal_panel_high, 0.72);
-      border-color: alpha(@portal_accent, 0.46);
-    }
-
-    filechooser treeview.view {
-      min-height: 34px;
-      padding: 5px 12px;
+    filechooser treeview.view,
+    filechooser treeview.view:backdrop {
+      min-height: 32px;
+      padding: 4px 10px;
       color: @portal_fg;
       background-color: @portal_view;
       background-image: none;
-      border-radius: 0;
-      border: 0;
       box-shadow: none;
     }
 
     filechooser treeview.view:hover {
-      background-color: alpha(@portal_accent, 0.10);
+      background-color: alpha(@portal_panel, 0.76);
       background-image: none;
     }
 
     filechooser treeview.view:selected,
-    filechooser treeview.view:selected:focus {
+    filechooser treeview.view:selected:focus,
+    filechooser treeview.view:selected:backdrop {
       color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.24);
+      background-color: alpha(@portal_accent, 0.13);
       background-image: none;
-      border-radius: 0;
+      border-color: transparent;
       box-shadow: none;
     }
 
-    filechooser button {
-      min-height: 30px;
-      min-width: 32px;
-      padding: 4px 10px;
+    filechooser .dialog-action-box,
+    filechooser > box > actionbar,
+    filechooser placesview > actionbar > revealer > box,
+    filechooser scrolledwindow + actionbar > revealer > box,
+    filechooser .dialog-action-box:backdrop,
+    filechooser actionbar:backdrop {
+      min-height: 36px;
+      padding: 3px 7px;
       color: @portal_fg;
-      background-color: @portal_panel;
-      border: 1px solid alpha(@portal_border, 0.72);
-      border-radius: 9px;
+      background-color: @portal_bg;
+      border-top: 1px solid @portal_border;
       box-shadow: none;
-    }
-
-    filechooser button:hover {
-      background-color: @portal_panel_high;
-      border-color: alpha(@portal_accent, 0.58);
-    }
-
-    filechooser button:active,
-    filechooser button:checked {
-      color: @portal_fg;
-      background-color: alpha(@portal_accent, 0.22);
-      border-color: @portal_accent;
-    }
-
-    filechooser button.suggested-action,
-    filechooser button.default {
-      padding-left: 20px;
-      padding-right: 20px;
-      color: @portal_accent_fg;
-      background-color: @portal_accent;
-      border-color: @portal_accent;
-      box-shadow: inset 0 -2px alpha(@portal_shadow, 0.18);
-    }
-
-    filechooser button.suggested-action:hover,
-    filechooser button.default:hover {
-      background-color: shade(@portal_accent, 1.08);
-      border-color: shade(@portal_accent, 1.08);
-    }
-
-    /* Bottom-row controls are comboboxes and checkbuttons, not plain buttons. */
-    filechooser combobox button,
-    filechooser combobox button.combo,
-    filechooser actionbar combobox button,
-    filechooser actionbar combobox button.combo,
-    filechooser .dialog-action-box combobox button,
-    filechooser .dialog-action-box combobox button.combo {
-      min-height: 30px;
-      padding: 4px 9px;
-      color: @portal_fg;
-      background-color: @portal_panel;
-      background-image: none;
-      border: 1px solid alpha(@portal_border, 0.72);
-      border-radius: 9px;
-      box-shadow: none;
-    }
-
-    filechooser combobox button:hover,
-    filechooser combobox button.combo:hover,
-    filechooser actionbar combobox button:hover,
-    filechooser actionbar combobox button.combo:hover,
-    filechooser combobox button:active,
-    filechooser combobox button.combo:active,
-    filechooser actionbar combobox button:active,
-    filechooser actionbar combobox button.combo:active {
-      color: @portal_fg;
-      background-color: @portal_panel_high;
-      border-color: alpha(@portal_accent, 0.64);
-    }
-
-    filechooser combobox button arrow,
-    filechooser combobox button.combo arrow {
-      color: @portal_muted;
     }
 
     filechooser checkbutton {
-      min-height: 30px;
-      padding: 2px 6px;
+      min-height: 26px;
+      padding: 1px 3px;
       color: @portal_muted;
-      background-color: transparent;
-    }
-
-    filechooser checkbutton:hover {
-      color: @portal_fg;
     }
 
     filechooser checkbutton check,
     filechooser checkbutton > check,
     filechooser actionbar checkbutton check,
     filechooser .dialog-action-box checkbutton check {
-      min-width: 14px;
-      min-height: 14px;
-      margin-right: 6px;
-      color: @portal_accent_fg;
+      min-width: 13px;
+      min-height: 13px;
+      margin-right: 5px;
       background-color: @portal_panel;
       background-image: none;
-      border: 1px solid alpha(@portal_border, 0.82);
-      border-radius: 4px;
-      box-shadow: inset 0 1px alpha(@portal_shadow, 0.16);
-    }
-
-    filechooser checkbutton check:hover {
-      border-color: alpha(@portal_accent, 0.74);
+      border: 1px solid @portal_border;
+      border-radius: 3px;
+      box-shadow: none;
     }
 
     filechooser checkbutton check:checked,
     filechooser checkbutton > check:checked,
     filechooser actionbar checkbutton check:checked,
     filechooser .dialog-action-box checkbutton check:checked {
+      color: @portal_accent_fg;
       background-color: @portal_accent;
       border-color: @portal_accent;
     }
 
-    filechooser .dialog-action-box,
-    filechooser > box > actionbar,
-    filechooser placesview > actionbar > revealer > box,
-    filechooser scrolledwindow + actionbar > revealer > box {
-      min-height: 42px;
-      padding: 5px 8px;
-      color: @portal_fg;
-      background-color: @portal_bg;
-      border-top: 1px solid @portal_border;
-      box-shadow: 0 -8px 18px alpha(@portal_shadow, 0.10);
-    }
-
-    filechooser paned.horizontal > separator {
-      background-color: @portal_border;
-      box-shadow: none;
-    }
-
-    filechooser scrollbar,
-    filechooser scrollbar trough {
-      background-color: transparent;
-      border: none;
-    }
-
-    filechooser scrollbar slider {
-      min-width: 6px;
-      min-height: 6px;
+    filechooser scrollbar slider,
+    filechooser scrollbar slider:backdrop {
+      min-width: 7px;
+      min-height: 7px;
       border: 2px solid transparent;
-      border-radius: 999px;
-      background-color: alpha(@portal_muted, 0.42);
+      background-color: alpha(@portal_muted, 0.46);
+      background-image: none;
+      box-shadow: none;
     }
 
     filechooser scrollbar slider:hover {
-      background-color: alpha(@portal_accent, 0.72);
-    }
-
-    filechooser separator {
-      background-color: @portal_border;
-    }
-
-    filechooser selection,
-    filechooser text selection,
-    filechooser entry selection {
-      color: @portal_accent_fg;
-      background-color: @portal_accent;
-    }
-
-    /* Keep unfocused dialogs in the same palette instead of Adwaita grey. */
-    window.background:backdrop,
-    window:backdrop {
-      color: @portal_muted;
-      background-color: @portal_window;
-    }
-
-    filechooser:backdrop {
-      color: @portal_muted;
-      background-color: @portal_bg;
-    }
-
-    headerbar button:backdrop,
-    headerbar button.flat:backdrop,
-    .titlebar button:backdrop,
-    .titlebar button.flat:backdrop {
-      color: @portal_muted;
-      background-color: alpha(@portal_panel_high, 0.24);
-      background-image: none;
-      border-color: alpha(@portal_border, 0.44);
-      box-shadow: none;
-    }
-
-    headerbar button.default:backdrop,
-    headerbar button.suggested-action:backdrop,
-    .titlebar button.default:backdrop,
-    .titlebar button.suggested-action:backdrop {
-      color: alpha(@portal_fg, 0.82);
-      background-color: alpha(@portal_accent, 0.32);
-      background-image: none;
-      border-color: alpha(@portal_accent, 0.48);
-      box-shadow: none;
-    }
-
-    headerbar button:backdrop:disabled,
-    .titlebar button:backdrop:disabled {
-      color: alpha(@portal_muted, 0.48);
-      background-color: alpha(@portal_panel_high, 0.16);
-      border-color: alpha(@portal_border, 0.28);
-    }
-
-    filechooser pathbar button:backdrop,
-    filechooser .path-bar button:backdrop {
-      color: @portal_muted;
-      background-color: alpha(@portal_panel, 0.48);
-      background-image: none;
-      border-color: alpha(@portal_border, 0.46);
-      box-shadow: none;
-    }
-
-    filechooser pathbar button:backdrop:checked,
-    filechooser .path-bar button:backdrop:checked {
-      color: alpha(@portal_fg, 0.84);
-      background-color: alpha(@portal_accent, 0.14);
-      border-color: alpha(@portal_accent, 0.38);
-    }
-
-    filechooser entry:backdrop,
-    filechooser searchentry:backdrop {
-      color: @portal_muted;
-      background-color: @portal_panel;
-      border-color: alpha(@portal_border, 0.48);
-      background-image: none;
-      box-shadow: none;
-    }
-
-    filechooser placessidebar.sidebar:backdrop,
-    filechooser placessidebar:backdrop {
-      color: @portal_muted;
-      background-color: @portal_sidebar;
-      background-image: none;
-      border-color: @portal_border;
-    }
-
-    filechooser placessidebar row:backdrop {
-      color: @portal_muted;
-      background-color: transparent;
-    }
-
-    filechooser placessidebar row:backdrop:selected {
-      color: alpha(@portal_fg, 0.88);
-      background-color: alpha(@portal_accent, 0.16);
-      box-shadow: inset 3px 0 alpha(@portal_accent, 0.62);
-    }
-
-    filechooser .view:backdrop,
-    filechooser scrolledwindow:backdrop,
-    filechooser viewport:backdrop,
-    filechooser treeview.view:backdrop {
-      color: @portal_muted;
-      background-color: @portal_view;
-      background-image: none;
-      border-color: @portal_border;
-    }
-
-    filechooser treeview.view header button:backdrop {
-      color: @portal_muted;
-      background-color: @portal_panel;
-      background-image: none;
-      border-color: alpha(@portal_border, 0.58);
-      box-shadow: none;
-    }
-
-    filechooser treeview.view:selected:backdrop {
-      color: alpha(@portal_fg, 0.88);
-      background-color: alpha(@portal_accent, 0.17);
-      background-image: none;
-      border-color: alpha(@portal_accent, 0.28);
-      box-shadow: none;
-    }
-
-    filechooser button:backdrop {
-      color: @portal_muted;
-      background-color: alpha(@portal_panel, 0.62);
-      background-image: none;
-      border-color: alpha(@portal_border, 0.46);
-      box-shadow: none;
-    }
-
-    filechooser button.suggested-action:backdrop,
-    filechooser button.default:backdrop {
-      color: alpha(@portal_fg, 0.82);
-      background-color: alpha(@portal_accent, 0.30);
-      border-color: alpha(@portal_accent, 0.46);
-    }
-
-    filechooser .dialog-action-box:backdrop,
-    filechooser actionbar:backdrop {
-      color: @portal_muted;
-      background-color: @portal_bg;
-      border-color: @portal_border;
-      box-shadow: none;
-    }
-
-    filechooser scrollbar slider:backdrop {
-      background-color: alpha(@portal_muted, 0.26);
+      background-color: alpha(@portal_muted, 0.72);
     }
   '';
 
