@@ -5,7 +5,7 @@ umask 022
 
 usage() {
   printf '%s\n' \
-    "Usage: scripts/install.sh [install|update] [--enable cursor,gtk,hyprtoolkit,qbittorrent,portal]" \
+    "Usage: scripts/install.sh [install|update] [--enable cursor,gtk,hyprtoolkit,qt,qbittorrent,portal]" \
     "" \
     "Builds the current checkout, installs managed files, and preserves user configuration." \
     "Use --enable after configuring the integrations you want to run." \
@@ -159,7 +159,7 @@ else
   create_config=false
 fi
 
-for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
+for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json prismlauncher.qss qt-caelestia.conf qt-caelestia.qss qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
   stage_managed \
     "$repo_dir/assets/manual/templates/$template" \
     "templates/$template"
@@ -177,6 +177,14 @@ done
 render_staged \
   "$repo_dir/assets/manual/portal-qt/qt6ct.conf.in" \
   "portal-qt/qt6ct/qt6ct.conf"
+for version in qt5ct qt6ct; do
+  render_staged \
+    "$repo_dir/assets/manual/qt/$version.conf.in" \
+    "$version/$version.conf"
+done
+stage_managed \
+  "$repo_dir/assets/manual/environment.d/10-caelestia-qt.conf" \
+  "environment.d/10-caelestia-qt.conf"
 for dropin in xdg-desktop-portal-gtk.service.d/10-caelestia-theme.conf xdg-desktop-portal-hyprland.service.d/10-caelestia-theme.conf; do
   render_staged \
     "$repo_dir/assets/manual/systemd/$dropin.in" \
@@ -201,7 +209,7 @@ else
   printf 'keeping user config: %s\n' "$config_file"
 fi
 
-for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
+for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json prismlauncher.qss qt-caelestia.conf qt-caelestia.qss qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
   commit_managed \
     "templates/$template" \
     "$config_home/caelestia/templates/$template"
@@ -209,6 +217,14 @@ done
 link_managed \
   "$theme_dir/prismlauncher.json" \
   "$data_home/PrismLauncher/themes/caelestia-breeze/theme.json"
+link_managed \
+  "$theme_dir/prismlauncher.qss" \
+  "$data_home/PrismLauncher/themes/caelestia-breeze/themeStyle.css"
+for version in qt5ct qt6ct; do
+  commit_managed \
+    "$version/$version.conf" \
+    "$config_home/$version/$version.conf"
+done
 for version in gtk-3.0 gtk-4.0; do
   commit_managed \
     "theme/$version/base-dark.css" \
@@ -236,7 +252,7 @@ done
 printf '%s complete: %s\n' "$mode" "$binary"
 
 if [ -z "$enable" ]; then
-  printf '%s\n' "No services enabled. Configure the integrations, then rerun with --enable cursor,gtk,hyprtoolkit,qbittorrent,portal."
+  printf '%s\n' "No services enabled. Configure the integrations, then rerun with --enable cursor,gtk,hyprtoolkit,qt,qbittorrent,portal."
   exit 0
 fi
 
@@ -246,14 +262,14 @@ systemctl --user daemon-reload
 
 old_ifs=$IFS
 if [ "$enable" = "all" ]; then
-  enable=cursor,gtk,hyprtoolkit,qbittorrent,portal
+  enable=cursor,gtk,hyprtoolkit,qt,qbittorrent,portal
 fi
 IFS=,
 set -- $enable
 IFS=$old_ifs
 for integration in "$@"; do
   case "$integration" in
-    cursor|gtk|hyprtoolkit|qbittorrent|portal)
+    cursor|gtk|hyprtoolkit|qt|qbittorrent|portal)
       path_unit="caelestia-extras-$integration.path"
       service_unit="caelestia-extras-$integration.service"
       ;;
@@ -263,6 +279,11 @@ for integration in "$@"; do
   esac
   systemctl --user enable --now "$path_unit"
   systemctl --user start "$service_unit"
+  if [ "$integration" = qt ]; then
+    link_managed \
+      "$config_home/caelestia-extras/managed/environment.d/10-caelestia-qt.conf" \
+      "$config_home/environment.d/10-caelestia-qt.conf"
+  fi
 done
 
 printf '%s\n' "Selected services are enabled. Log out and back in before testing portal changes."

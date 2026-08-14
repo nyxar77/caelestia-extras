@@ -12,6 +12,7 @@ use:
 - GTK: `dconf`
 - XCursor fallback: `cbmp` and `ctgen`
 - pavucontrol: `pavucontrol-qt`
+- Shared Qt theme: `qt5ct` and `qt6ct`
 - qBittorrent: `qbittorrent` and Qt's `rcc`
 
 ## Install or update
@@ -54,11 +55,11 @@ Edit the config first, then check it:
 Enable only the integrations you configured:
 
 ```sh
-./scripts/install.sh --enable cursor,gtk,qbittorrent
+./scripts/install.sh --enable cursor,gtk,qt,qbittorrent
 ```
 
-Valid names are `cursor`, `gtk`, `hyprtoolkit`, `qbittorrent`, and `portal`.
-Use `all` for all five. The script enables the matching path units and runs an
+Valid names are `cursor`, `gtk`, `hyprtoolkit`, `qt`, `qbittorrent`, and `portal`.
+Use `all` for all six. The script enables the matching path units and runs an
 initial sync.
 
 `pavucontrol` has no background service; run `caelestia-extras pavucontrol`
@@ -68,6 +69,9 @@ qBittorrent is updated by a path unit but is not restarted for you.
 
 Portal service drop-ins take effect after the next login. The script does not
 restart portal processes for you.
+
+The `qt` integration also writes an `environment.d` file. Log out and back in
+before launching Qt applications so they receive the Qt5/Qt6 platform theme.
 
 ## XDG paths
 

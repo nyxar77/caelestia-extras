@@ -24,6 +24,7 @@ programs.caelestia-extras = {
   gtk.enable = true;
   hyprtoolkit.enable = true;
   pavucontrol.enable = true;
+  qt.enable = true;
   prismlauncher.enable = true;
   qbittorrent.enable = true;
   portal.enable = true;

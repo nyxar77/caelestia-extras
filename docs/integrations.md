@@ -43,9 +43,15 @@ Restart qBittorrent after a sync.
 
 ## PrismLauncher
 
-Enabling `prismlauncher` writes a generated native theme into PrismLauncher’s
-theme directory. It does not install PrismLauncher; select `Caelestia Breeze`
-in PrismLauncher if it is not already selected.
+Enabling `prismlauncher` writes a generated palette and widget stylesheet into
+PrismLauncher’s theme directory. It does not install PrismLauncher; select
+`Caelestia` in PrismLauncher if it is not already selected.
+
+## Shared Qt theme
+
+Enabling `qt` generates a shared Qt5/Qt6 palette and stylesheet. It includes
+the base controls; individual integrations add their own selectors where an
+application needs more detail.
 
 ## XDG portals
 

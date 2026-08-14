@@ -42,6 +42,12 @@
     // lib.optionalAttrs cfg.pavucontrol.enable {
       pavucontrol.command = cfg.pavucontrol.command;
     }
+    // lib.optionalAttrs cfg.qt.enable {
+      qt = {
+        theme_dir = cfg.qt.themeDir;
+        config_home = cfg.qt.configHome;
+      };
+    }
     // lib.optionalAttrs cfg.qbittorrent.enable {
       qbittorrent = {
         command = cfg.qbittorrent.command;
@@ -77,6 +83,7 @@ in {
   imports = [
     ./hyprtoolkit.nix
     ./portal.nix
+    ./qt.nix
   ];
 
   options.programs.caelestia-extras = {
@@ -145,6 +152,24 @@ in {
       enable = lib.mkEnableOption "Caelestia-themed pavucontrol-qt launcher";
       command = lib.mkOption { type = lib.types.str; default = "pavucontrol-qt"; };
     };
+    qt = {
+      enable = lib.mkEnableOption "shared Caelestia Qt theming";
+      themeDir = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.xdg.stateHome}/caelestia/theme";
+        description = "Directory containing generated Qt palette and stylesheet files.";
+      };
+      configHome = lib.mkOption {
+        type = lib.types.str;
+        default = config.xdg.configHome;
+        description = "XDG configuration directory used by qt5ct and qt6ct.";
+      };
+      iconTheme = lib.mkOption {
+        type = lib.types.str;
+        default = "Papirus-Dark";
+        description = "Icon theme used by qt5ct and qt6ct.";
+      };
+    };
     prismlauncher = {
       enable = lib.mkEnableOption "Caelestia PrismLauncher theme";
       themeDir = lib.mkOption {
@@ -201,11 +226,15 @@ in {
     home.packages = [package];
     xdg.configFile = {
       "caelestia-extras/config.toml".source = configFile;
+    } // lib.optionalAttrs cfg.qt.enable {
+      "caelestia/templates/qt-caelestia.conf".source = ../assets/manual/templates/qt-caelestia.conf;
+      "caelestia/templates/qt-caelestia.qss".source = ../assets/manual/templates/qt-caelestia.qss;
     } // lib.optionalAttrs cfg.prismlauncher.enable {
       "caelestia/templates/prismlauncher.json".text = ''
         {
-          "name": "Caelestia Breeze",
-          "widgets": "Breeze",
+          "name": "Caelestia",
+          "widgets": "Fusion",
+          "qssFilePath": "themeStyle.css",
           "colors": {
             "Window": "#{{ surface.hex }}", "WindowText": "#{{ onSurface.hex }}",
             "Base": "#{{ surfaceContainerLowest.hex }}", "AlternateBase": "#{{ surfaceContainerLow.hex }}",
@@ -223,10 +252,153 @@ in {
           }
         }
       '';
+      "caelestia/templates/prismlauncher.qss".text = ''
+        QWidget {
+          color: #{{ onSurface.hex }};
+          background-color: #{{ surface.hex }};
+        }
+
+        QMainWindow, QDialog, QStackedWidget, QScrollArea, QFrame {
+          background-color: #{{ surface.hex }};
+        }
+
+        QAbstractItemView {
+          alternate-background-color: #{{ surfaceContainerLow.hex }};
+          selection-background-color: #{{ primaryContainer.hex }};
+          selection-color: #{{ onPrimaryContainer.hex }};
+          border: 1px solid #{{ outlineVariant.hex }};
+          outline: 0;
+        }
+
+        QAbstractItemView::item {
+          min-height: 28px;
+          padding: 5px 8px;
+          border: 0;
+        }
+
+        QAbstractItemView::item:hover {
+          background-color: #{{ secondaryContainer.hex }};
+          color: #{{ onSecondaryContainer.hex }};
+        }
+
+        QAbstractItemView::item:selected {
+          background-color: #{{ primaryContainer.hex }};
+          color: #{{ onPrimaryContainer.hex }};
+        }
+
+        QPushButton, QToolButton, QComboBox, QSpinBox, QLineEdit, QTextEdit, QPlainTextEdit {
+          min-height: 30px;
+          padding: 5px 10px;
+          color: #{{ onSurface.hex }};
+          background-color: #{{ surfaceContainer.hex }};
+          border: 1px solid #{{ outlineVariant.hex }};
+          border-radius: 7px;
+        }
+
+        QPushButton:hover, QToolButton:hover, QComboBox:hover, QSpinBox:hover,
+        QLineEdit:hover, QTextEdit:hover, QPlainTextEdit:hover {
+          background-color: #{{ surfaceContainerHigh.hex }};
+          border-color: #{{ primary.hex }};
+        }
+
+        QPushButton:pressed, QToolButton:pressed, QPushButton:checked, QToolButton:checked {
+          color: #{{ onPrimary.hex }};
+          background-color: #{{ primary.hex }};
+          border-color: #{{ primary.hex }};
+        }
+
+        QPushButton:disabled, QToolButton:disabled, QComboBox:disabled, QLineEdit:disabled {
+          color: #{{ onSurfaceVariant.hex }};
+          background-color: #{{ surfaceContainerLow.hex }};
+          border-color: #{{ outlineVariant.hex }};
+        }
+
+        QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QComboBox:focus, QSpinBox:focus {
+          border: 2px solid #{{ primary.hex }};
+          padding: 4px 9px;
+        }
+
+        QComboBox::drop-down { width: 28px; border: 0; }
+        QComboBox QAbstractItemView { padding: 5px; background-color: #{{ surfaceContainerHigh.hex }}; }
+
+        QTabWidget::pane {
+          top: -1px;
+          border: 1px solid #{{ outlineVariant.hex }};
+          background-color: #{{ surface.hex }};
+        }
+
+        QTabBar::tab {
+          min-height: 30px;
+          padding: 6px 13px;
+          color: #{{ onSurfaceVariant.hex }};
+          background-color: #{{ surfaceContainerLow.hex }};
+          border: 1px solid #{{ outlineVariant.hex }};
+          border-bottom: 0;
+          border-top-left-radius: 7px;
+          border-top-right-radius: 7px;
+        }
+
+        QTabBar::tab:hover { color: #{{ onSurface.hex }}; background-color: #{{ surfaceContainer.hex }}; }
+        QTabBar::tab:selected { color: #{{ onPrimaryContainer.hex }}; background-color: #{{ primaryContainer.hex }}; border-color: #{{ primary.hex }}; }
+
+        QHeaderView::section {
+          min-height: 30px;
+          padding: 5px 9px;
+          color: #{{ onSurfaceVariant.hex }};
+          background-color: #{{ surfaceContainerHigh.hex }};
+          border: 0;
+          border-right: 1px solid #{{ outlineVariant.hex }};
+          border-bottom: 1px solid #{{ outlineVariant.hex }};
+        }
+
+        QCheckBox, QRadioButton { spacing: 8px; }
+        QCheckBox::indicator, QRadioButton::indicator {
+          width: 17px;
+          height: 17px;
+          background-color: #{{ surfaceContainer.hex }};
+          border: 1px solid #{{ outline.hex }};
+          border-radius: 4px;
+        }
+        QRadioButton::indicator { border-radius: 9px; }
+        QCheckBox::indicator:hover, QRadioButton::indicator:hover { border-color: #{{ primary.hex }}; }
+        QCheckBox::indicator:checked, QRadioButton::indicator:checked { background-color: #{{ primary.hex }}; border-color: #{{ primary.hex }}; }
+
+        QProgressBar {
+          min-height: 10px;
+          color: transparent;
+          background-color: #{{ surfaceContainerHighest.hex }};
+          border: 0;
+          border-radius: 5px;
+        }
+        QProgressBar::chunk { background-color: #{{ primary.hex }}; border-radius: 5px; }
+
+        QScrollBar:vertical { width: 12px; margin: 3px; background: transparent; }
+        QScrollBar:horizontal { height: 12px; margin: 3px; background: transparent; }
+        QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+          min-height: 30px;
+          min-width: 30px;
+          background-color: #{{ outlineVariant.hex }};
+          border-radius: 6px;
+        }
+        QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover { background-color: #{{ primary.hex }}; }
+        QScrollBar::add-line, QScrollBar::sub-line { width: 0; height: 0; }
+
+        QMenu, QToolTip {
+          padding: 6px;
+          color: #{{ onSurface.hex }};
+          background-color: #{{ surfaceContainerHigh.hex }};
+          border: 1px solid #{{ outlineVariant.hex }};
+          border-radius: 8px;
+        }
+        QMenu::item { min-height: 26px; padding: 5px 24px 5px 10px; border-radius: 5px; }
+        QMenu::item:selected { color: #{{ onSecondaryContainer.hex }}; background-color: #{{ secondaryContainer.hex }}; }
+      '';
     };
     xdg.dataFile = lib.mkIf cfg.prismlauncher.enable {
       "PrismLauncher/themes/${cfg.prismlauncher.themeName}/theme.json".source =
         config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.json";
+      "PrismLauncher/themes/${cfg.prismlauncher.themeName}/themeStyle.css".source =
+        config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.qss";
     };
     xdg.desktopEntries =
       lib.optionalAttrs cfg.gtk.enable (lib.mapAttrs (_: entry: {
@@ -245,6 +417,9 @@ in {
       };
     home.activation.caelestiaExtrasPortal = lib.mkIf cfg.portal.enable (
       lib.hm.dag.entryAfter ["writeBoundary"] "${command} portal sync"
+    );
+    home.activation.caelestiaExtrasQt = lib.mkIf cfg.qt.enable (
+      lib.hm.dag.entryAfter ["writeBoundary"] "${command} qt sync"
     );
     home.activation.caelestiaExtrasHyprtoolkit = lib.mkIf cfg.hyprtoolkit.enable (
       lib.hm.dag.entryAfter ["writeBoundary"] "${command} hyprtoolkit sync"
@@ -303,6 +478,16 @@ in {
           Install.WantedBy = ["graphical-session.target"];
         };
       })
+      (lib.mkIf cfg.qt.enable {
+        caelestia-extras-qt = {
+          Unit = { Description = "Sync shared Qt theme with Caelestia"; After = ["graphical-session.target"]; };
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${command} qt sync";
+          };
+          Install.WantedBy = ["graphical-session.target"];
+        };
+      })
       (lib.mkIf cfg.qbittorrent.enable {
         caelestia-extras-qbittorrent = {
           Unit = { Description = "Sync qBittorrent with Caelestia"; After = ["graphical-session.target"]; };
@@ -340,6 +525,15 @@ in {
             "${cfg.portal.themeDir}/gtk-global.css"
             "${cfg.portal.themeDir}/qt6ct-caelestia.conf"
             "${cfg.portal.themeDir}/qt6ct-portal.qss"
+          ];
+          Install.WantedBy = ["graphical-session.target"];
+        };
+      })
+      (lib.mkIf cfg.qt.enable {
+        caelestia-extras-qt = {
+          Path.PathChanged = [
+            "${cfg.qt.themeDir}/qt-caelestia.conf"
+            "${cfg.qt.themeDir}/qt-caelestia.qss"
           ];
           Install.WantedBy = ["graphical-session.target"];
         };

@@ -134,6 +134,16 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 		return runIntegration("launch pavucontrol", func() error {
 			return integration.LaunchPavucontrol(*configFile.Pavucontrol, args[1:])
 		})
+	case "qt":
+		if configFile.Qt == nil {
+			return fmt.Errorf("Qt sync is disabled in %q; add a [qt] section", *configPath)
+		}
+		if len(args) != 2 || args[1] != "sync" {
+			return usage("qt expects: sync")
+		}
+		return runIntegration("Qt sync", func() error {
+			return integration.SyncQt(*configFile.Qt)
+		})
 	case "qbittorrent":
 		if configFile.QBittorrent == nil {
 			return fmt.Errorf("qBittorrent sync is disabled in %q; add a [qbittorrent] section", *configPath)
@@ -167,7 +177,7 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 			return integration.SyncPortal(*configFile.Portal)
 		})
 	default:
-		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, qbittorrent, portal, config, completion, help, or version", args[0]))
+		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, qt, qbittorrent, portal, config, completion, help, or version", args[0]))
 	}
 }
 
@@ -180,7 +190,7 @@ func validateCommand(args []string) error {
 		if args[1] != "sync" && args[1] != "sync-xcursor" {
 			return usage(fmt.Sprintf("unknown cursor action %q; expected sync or sync-xcursor", args[1]))
 		}
-	case "gtk", "hyprtoolkit", "portal", "qbittorrent":
+	case "gtk", "hyprtoolkit", "qt", "portal", "qbittorrent":
 		if len(args) != 2 || args[1] != "sync" {
 			return usage(fmt.Sprintf("%s expects: sync", args[0]))
 		}
@@ -191,7 +201,7 @@ func validateCommand(args []string) error {
 			return usage("config expects: validate")
 		}
 	default:
-		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, qbittorrent, portal, config, completion, help, or version", args[0]))
+		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, qt, qbittorrent, portal, config, completion, help, or version", args[0]))
 	}
 	return nil
 }
@@ -226,6 +236,8 @@ func writeHelp(args []string, stdout io.Writer) error {
 		help = hyprtoolkitHelp
 	case "pavucontrol":
 		help = pavucontrolHelp
+	case "qt":
+		help = qtHelp
 	case "qbittorrent":
 		help = qbittorrentHelp
 	case "portal":
@@ -271,6 +283,7 @@ Commands:
   gtk sync                 Sync the GTK theme and colour preference
   hyprtoolkit sync         Apply generated Hyprtoolkit configuration
   pavucontrol [arguments]  Launch the configured volume mixer
+  qt sync                  Apply the shared Qt palette and stylesheet
   qbittorrent sync         Build and select the qBittorrent theme
   portal sync              Apply generated portal themes
   config validate          Check files, tools, and enabled integrations
@@ -320,6 +333,12 @@ Launches the configured pavucontrol-qt command with the generated stylesheet.
 Arguments after pavucontrol are passed to pavucontrol-qt.
 `
 
+const qtHelp = `Usage: caelestia-extras qt sync
+
+Copies Caelestia's generated Qt palette and stylesheet into qt5ct and qt6ct.
+Requires a [qt] section in the configuration.
+`
+
 const qbittorrentHelp = `Usage: caelestia-extras qbittorrent sync
 
 Builds the configured qBittorrent theme. It does nothing when qBittorrent or
@@ -354,13 +373,13 @@ _caelestia_extras() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   command="${COMP_WORDS[1]}"
   if [[ $COMP_CWORD == 1 ]]; then
-    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol qbittorrent portal config completion help version" -- "$cur"))
+    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == cursor ]]; then
     COMPREPLY=($(compgen -W "sync sync-xcursor" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == completion ]]; then
     COMPREPLY=($(compgen -W "bash zsh fish" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == help ]]; then
-    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol qbittorrent portal config completion" -- "$cur"))
+    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion" -- "$cur"))
   fi
 }
 complete -F _caelestia_extras caelestia-extras
@@ -371,22 +390,23 @@ const zshCompletion = `#compdef caelestia-extras
 _arguments \
   '(-config 1)'{-config,-config}'[configuration file]:file:_files' \
   '(-version 1)'--version'[show version]' \
-  '1:command:(cursor gtk hyprtoolkit pavucontrol qbittorrent portal config completion help version)' \
+  '1:command:(cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version)' \
   '*::argument:->args'
 
 case $words[2] in
   cursor) _arguments '1:action:(sync sync-xcursor)' ;;
-  qbittorrent) _arguments '1:action:(sync)' ;;
+  qt|qbittorrent) _arguments '1:action:(sync)' ;;
   completion) _arguments '1:shell:(bash zsh fish)' ;;
-  help) _arguments '1:command:(cursor gtk hyprtoolkit pavucontrol qbittorrent portal config completion)' ;;
+  help) _arguments '1:command:(cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion)' ;;
   config) _arguments '1:action:(validate)' ;;
 esac
 `
 
-const fishCompletion = `complete -c caelestia-extras -f -n '__fish_use_subcommand' -a 'cursor gtk hyprtoolkit pavucontrol qbittorrent portal config completion help version'
+const fishCompletion = `complete -c caelestia-extras -f -n '__fish_use_subcommand' -a 'cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version'
 complete -c caelestia-extras -l config -r -d 'configuration file'
 complete -c caelestia-extras -l version -d 'show version'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from cursor' -a 'sync sync-xcursor'
+complete -c caelestia-extras -n '__fish_seen_subcommand_from qt' -a 'sync'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from qbittorrent' -a 'sync'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from completion' -a 'bash zsh fish'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from help' -a 'cursor gtk hyprtoolkit pavucontrol qbittorrent portal config completion'

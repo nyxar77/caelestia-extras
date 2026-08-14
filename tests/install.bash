@@ -59,9 +59,12 @@ config_file="$test_dir/config/caelestia-extras/config.toml"
 test -x "$test_dir/bin/caelestia-extras"
 test -f "$config_file"
 test -L "$test_dir/config/caelestia/templates/gtk-portal.css"
+test -L "$test_dir/config/caelestia/templates/prismlauncher.qss"
+test -L "$test_dir/config/caelestia/templates/qt-caelestia.qss"
 test -L "$test_dir/config/systemd/user/caelestia-extras-gtk.path"
 test -L "$test_dir/data/themes/Caelestia-Portal/gtk-4.0/base-dark.css"
 test -L "$test_dir/data/PrismLauncher/themes/caelestia-breeze/theme.json"
+test -L "$test_dir/data/PrismLauncher/themes/caelestia-breeze/themeStyle.css"
 
 if TEST_INTERRUPT_GO=1 \
   HOME="$test_dir/cancel/home" \
@@ -92,6 +95,12 @@ grep -qx -- '--user daemon-reload' "$test_dir/systemctl.log"
 grep -qx -- '--user enable --now caelestia-extras-gtk.path' "$test_dir/systemctl.log"
 grep -qx -- '--user start caelestia-extras-gtk.service' "$test_dir/systemctl.log"
 grep -Fqx "ExecStart=\"$test_dir/bin/caelestia-extras\" --config \"$config_file\" gtk sync" "$test_dir/config/caelestia-extras/managed/systemd/caelestia-extras-gtk.service"
+
+run_install update --enable qt
+grep -qx -- '--user enable --now caelestia-extras-qt.path' "$test_dir/systemctl.log"
+grep -qx -- '--user start caelestia-extras-qt.service' "$test_dir/systemctl.log"
+test -L "$test_dir/config/environment.d/10-caelestia-qt.conf"
+grep -Fqx "PathChanged=$test_dir/state/caelestia/theme/qt-caelestia.qss" "$test_dir/config/caelestia-extras/managed/systemd/caelestia-extras-qt.path"
 
 export CAELESTIA_EXTRAS_SCHEME_FILE="$test_dir/custom/scheme.json"
 export CAELESTIA_EXTRAS_THEME_DIR="$test_dir/custom/theme"

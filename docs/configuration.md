@@ -29,6 +29,8 @@ update_gtk = true
 
 [pavucontrol]
 
+[qt]
+
 [qbittorrent]
 
 [portal]
@@ -78,6 +80,16 @@ to detect the compositor reliably.
 
 If the command is absent, launching it is a no-op. Enabling this integration
 does not install the application.
+
+### `[qt]`
+
+- `theme_dir` — generated palette and stylesheet directory. Default:
+  `$XDG_STATE_HOME/caelestia/theme`.
+- `config_home` — XDG config directory. Default: `$XDG_CONFIG_HOME`.
+
+The integration copies the generated palette and stylesheet to both `qt5ct` and
+`qt6ct`. The session must use `QT_QPA_PLATFORMTHEME=qt5ct:qt6ct` and
+`QT_STYLE_OVERRIDE=Fusion`; Home Manager configures this automatically.
 
 ### `[qbittorrent]`
 

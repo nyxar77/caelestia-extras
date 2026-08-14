@@ -57,6 +57,25 @@ func LaunchPavucontrol(pavucontrol config.Pavucontrol, arguments []string) error
 	return syscallExec(append(command, arguments...))
 }
 
+func SyncQt(qt config.Qt) error {
+	assets := map[string]string{
+		"qt-caelestia.conf": "colors/caelestia.conf",
+		"qt-caelestia.qss":  "qss/caelestia.qss",
+	}
+	for _, version := range []string{"qt5ct", "qt6ct"} {
+		for source, destination := range assets {
+			path := filepath.Join(qt.ThemeDir, source)
+			if !exists(path) {
+				continue
+			}
+			if err := copyFile(path, filepath.Join(qt.ConfigHome, version, destination)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func SyncQBittorrent(qbittorrent config.QBittorrent) error {
 	if _, err := exec.LookPath(qbittorrent.Command); err != nil {
 		return nil

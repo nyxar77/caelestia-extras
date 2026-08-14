@@ -57,3 +57,11 @@ func TestValidateReportsMissingRequirements(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateReportsMissingQtPlatformThemes(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+	err := Config{Qt: &Qt{}}.Validate()
+	if err == nil || !strings.Contains(err.Error(), "qt5ct") || !strings.Contains(err.Error(), "qt6ct") {
+		t.Fatalf("unexpected validation error: %v", err)
+	}
+}

@@ -18,6 +18,7 @@ type Config struct {
 	GTK         *GTK         `toml:"gtk"`
 	Hyprtoolkit *Hyprtoolkit `toml:"hyprtoolkit"`
 	Pavucontrol *Pavucontrol `toml:"pavucontrol"`
+	Qt          *Qt          `toml:"qt"`
 	QBittorrent *QBittorrent `toml:"qbittorrent"`
 	Portal      *Portal      `toml:"portal"`
 }
@@ -53,6 +54,11 @@ type Hyprtoolkit struct {
 
 type Pavucontrol struct {
 	Command string `toml:"command"`
+}
+
+type Qt struct {
+	ThemeDir   string `toml:"theme_dir"`
+	ConfigHome string `toml:"config_home"`
 }
 
 type QBittorrent struct {
@@ -129,6 +135,14 @@ func Load(path string) (Config, error) {
 	}
 	if config.Pavucontrol != nil && config.Pavucontrol.Command == "" {
 		config.Pavucontrol.Command = "pavucontrol-qt"
+	}
+	if config.Qt != nil {
+		if config.Qt.ThemeDir == "" {
+			config.Qt.ThemeDir = filepath.Join(xdg("XDG_STATE_HOME", ".local/state"), "caelestia", "theme")
+		}
+		if config.Qt.ConfigHome == "" {
+			config.Qt.ConfigHome = xdg("XDG_CONFIG_HOME", ".config")
+		}
 	}
 	if config.QBittorrent != nil {
 		if config.QBittorrent.Command == "" {
@@ -215,6 +229,14 @@ func (c Config) Validate() error {
 	}
 	if c.Pavucontrol != nil {
 		enabled++
+	}
+	if c.Qt != nil {
+		enabled++
+		for _, command := range []string{"qt5ct", "qt6ct"} {
+			if err := commandAvailable(command); err != nil {
+				problems = append(problems, err.Error())
+			}
+		}
 	}
 	if c.QBittorrent != nil {
 		enabled++
