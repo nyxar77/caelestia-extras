@@ -1,0 +1,49 @@
+# CLI
+
+Global options must come before the command.
+
+```text
+caelestia-extras [options] <command> [arguments]
+```
+
+## Commands
+
+```text
+cursor sync              Build and apply the active Hyprcursor theme
+cursor sync-xcursor      Build the XCursor fallback
+gtk sync                 Sync the GTK theme and colour preference
+hyprtoolkit sync         Apply generated Hyprtoolkit configuration
+pavucontrol [arguments]  Launch the configured volume mixer
+portal sync              Apply generated portal themes
+config validate          Check files, tools, and enabled integrations
+version                  Print the version
+```
+
+Use `--help` or `help <command>` for details:
+
+```sh
+caelestia-extras --help
+caelestia-extras help cursor
+caelestia-extras portal --help
+```
+
+Use another config file with `--config`:
+
+```sh
+caelestia-extras --config ~/work/caelestia-extras.toml gtk sync
+```
+
+## Shell completion
+
+The program prints a completion script. The shell loads it and handles Tab.
+
+```sh
+# Bash
+source <(caelestia-extras completion bash)
+
+# Zsh
+caelestia-extras completion zsh > ~/.zfunc/_caelestia-extras
+
+# Fish
+caelestia-extras completion fish | source
+```
