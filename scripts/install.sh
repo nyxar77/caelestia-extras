@@ -41,6 +41,18 @@ link_managed() {
   ln -s "$managed" "$destination"
 }
 
+relink_managed() {
+  managed=$1
+  previous=$2
+  destination=$3
+
+  if [ -L "$destination" ] && [ "$(readlink "$destination")" = "$previous" ]; then
+    ln -sfn "$managed" "$destination"
+    return
+  fi
+  link_managed "$managed" "$destination"
+}
+
 stage_managed() {
   source=$1
   relative=$2
@@ -159,7 +171,7 @@ else
   create_config=false
 fi
 
-for template in gtk-portal.css gtk.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qt6ct-portal.qss; do
+for template in gtk-portal.css gtk.css gtk4.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qt6ct-portal.qss; do
   stage_managed \
     "$repo_dir/assets/manual/templates/$template" \
     "templates/$template"
@@ -212,16 +224,18 @@ else
   printf 'keeping user config: %s\n' "$config_file"
 fi
 
-for template in gtk-portal.css gtk.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qt6ct-portal.qss; do
+for template in gtk-portal.css gtk.css gtk4.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qt6ct-portal.qss; do
   commit_managed \
     "templates/$template" \
     "$config_home/caelestia/templates/$template"
 done
-for version in gtk-3.0 gtk-4.0; do
-  link_managed \
-    "$theme_dir/gtk.css" \
-    "$config_home/$version/gtk.css"
-done
+link_managed \
+  "$theme_dir/gtk.css" \
+  "$config_home/gtk-3.0/gtk.css"
+relink_managed \
+  "$theme_dir/gtk4.css" \
+  "$theme_dir/gtk.css" \
+  "$config_home/gtk-4.0/gtk.css"
 commit_managed \
   "templates/prismlauncher.qss" \
   "$config_home/caelestia/templates/prismlauncher.qss"

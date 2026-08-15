@@ -24,9 +24,9 @@ backend is Hyprland.
 
 `gtk sync` sets the GNOME colour preference and selects the configured light or
 dark GTK theme. It uses `dconf`. Home Manager and the manual installer expose
-Caelestia's generated `gtk.css` to GTK 3 and GTK 4. That stylesheet defines the
-public GTK/libadwaita colour tokens only: no global `button`, `entry`, `window`,
-or geometry selectors are used.
+Caelestia's generated `gtk.css` to GTK 3 and `gtk4.css` to GTK 4. Those
+stylesheets define the public GTK/libadwaita colour tokens only: no global
+`button`, `entry`, `window`, or geometry selectors are used.
 
 This is intentionally global at the palette boundary. App-specific styling is
 reserved for an application that cannot consume the toolkit tokens correctly.

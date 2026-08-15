@@ -11,13 +11,17 @@
 @define-color portal_border #{{ outlineVariant.hex }};
 
 window,
-filechooser {
+window:backdrop,
+filechooser,
+filechooser:backdrop {
   color: @portal_fg;
   background-color: @portal_bg;
 }
 
 headerbar,
-.titlebar {
+headerbar:backdrop,
+.titlebar,
+.titlebar:backdrop {
   min-height: 42px;
   padding: 0 7px;
   color: @portal_fg;
@@ -30,8 +34,12 @@ headerbar,
 
 headerbar button,
 headerbar button.flat,
+headerbar button:backdrop,
+headerbar button.flat:backdrop,
 .titlebar button,
-.titlebar button.flat {
+.titlebar button.flat,
+.titlebar button:backdrop,
+.titlebar button.flat:backdrop {
   min-height: 28px;
   min-width: 28px;
   margin: 3px 2px;

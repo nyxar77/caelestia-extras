@@ -66,9 +66,10 @@ to detect the compositor reliably.
 - `dark_theme` — Default: `adw-gtk3-dark`.
 - `light_theme` — Default: `adw-gtk3`.
 
-Home Manager and the manual installer link the generated `gtk.css` into the
-GTK 3 and GTK 4 user-style locations. The stylesheet changes only GTK and
-libadwaita colour tokens; the toolkit still owns widget layout and interaction
+Home Manager and the manual installer link the generated GTK 3 `gtk.css` and
+GTK 4 `gtk4.css` into their respective user-style locations. Keeping them
+separate prevents GTK 3 from parsing GTK 4-only CSS variables. Both stylesheets
+change only colour tokens; the toolkit still owns widget layout and interaction
 states.
 
 ### `[hyprtoolkit]`

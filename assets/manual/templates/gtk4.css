@@ -1,11 +1,9 @@
 /*
-  GTK 3 colour tokens only.
+  GTK 4 and libadwaita colour tokens only.
 
-  GTK and libadwaita keep ownership of widget geometry, spacing, states, and
-  accessibility. Caelestia supplies the palette through their public named
-  colours instead of restyling every widget class. GTK 4 uses gtk4.css;
-  keeping its :root variables out of this file is required because GTK 3
-  rejects that selector.
+  Applications retain ownership of widget geometry, spacing, states, and
+  accessibility. Caelestia supplies the palette through the public named
+  colours and CSS variables.
 */
 @define-color accent_color #{{ primary.hex }};
 @define-color accent_bg_color #{{ primary.hex }};
@@ -49,3 +47,47 @@
 @define-color shade_color alpha(#{{ outlineVariant.hex }}, 0.40);
 @define-color scrollbar_outline_color alpha(#{{ outlineVariant.hex }}, 0.80);
 @define-color borders #{{ outlineVariant.hex }};
+
+:root {
+  --accent-bg-color: #{{ primary.hex }};
+  --accent-fg-color: #{{ onPrimary.hex }};
+  --accent-color: #{{ primary.hex }};
+  --destructive-bg-color: #{{ error.hex }};
+  --destructive-fg-color: #{{ onError.hex }};
+  --destructive-color: #{{ error.hex }};
+  --error-bg-color: #{{ error.hex }};
+  --error-fg-color: #{{ onError.hex }};
+  --error-color: #{{ error.hex }};
+  --window-bg-color: #{{ surface.hex }};
+  --window-fg-color: #{{ onSurface.hex }};
+  --view-bg-color: #{{ surface.hex }};
+  --view-fg-color: #{{ onSurface.hex }};
+  --headerbar-bg-color: #{{ surfaceContainerLow.hex }};
+  --headerbar-fg-color: #{{ onSurface.hex }};
+  --headerbar-border-color: #{{ onSurfaceVariant.hex }};
+  --headerbar-backdrop-color: #{{ surfaceContainerLow.hex }};
+  --headerbar-shade-color: alpha(#{{ outlineVariant.hex }}, 0.36);
+  --headerbar-darker-shade-color: alpha(#{{ outlineVariant.hex }}, 0.72);
+  --sidebar-bg-color: #{{ surfaceContainer.hex }};
+  --sidebar-fg-color: #{{ onSurface.hex }};
+  --sidebar-backdrop-color: #{{ surfaceContainer.hex }};
+  --sidebar-border-color: alpha(#{{ outlineVariant.hex }}, 0.56);
+  --sidebar-shade-color: alpha(#{{ outlineVariant.hex }}, 0.40);
+  --secondary-sidebar-bg-color: #{{ surfaceContainerLow.hex }};
+  --secondary-sidebar-fg-color: #{{ onSurface.hex }};
+  --secondary-sidebar-backdrop-color: #{{ surfaceContainerLow.hex }};
+  --secondary-sidebar-border-color: alpha(#{{ outlineVariant.hex }}, 0.48);
+  --secondary-sidebar-shade-color: alpha(#{{ outlineVariant.hex }}, 0.36);
+  --card-bg-color: #{{ surfaceContainer.hex }};
+  --card-fg-color: #{{ onSurface.hex }};
+  --card-shade-color: alpha(#{{ outlineVariant.hex }}, 0.36);
+  --dialog-bg-color: #{{ surfaceContainerHigh.hex }};
+  --dialog-fg-color: #{{ onSurface.hex }};
+  --popover-bg-color: #{{ surfaceContainerHigh.hex }};
+  --popover-fg-color: #{{ onSurface.hex }};
+  --popover-shade-color: alpha(#{{ outlineVariant.hex }}, 0.40);
+  --thumbnail-bg-color: #{{ surfaceContainerHighest.hex }};
+  --thumbnail-fg-color: #{{ onSurface.hex }};
+  --shade-color: alpha(#{{ outlineVariant.hex }}, 0.40);
+  --scrollbar-outline-color: alpha(#{{ outlineVariant.hex }}, 0.80);
+}

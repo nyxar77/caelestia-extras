@@ -250,8 +250,9 @@ in {
       "caelestia-extras/config.toml".source = configFile;
     } // lib.optionalAttrs cfg.gtk.enable {
       "caelestia/templates/gtk.css".source = ../assets/manual/templates/gtk.css;
+      "caelestia/templates/gtk4.css".source = ../assets/manual/templates/gtk4.css;
       "gtk-3.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk.css";
-      "gtk-4.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk.css";
+      "gtk-4.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk4.css";
     } // lib.optionalAttrs (cfg.qt.enable || cfg.portal.enable) {
       "caelestia/templates/qt-caelestia.conf".source = ../assets/manual/templates/qt-caelestia.conf;
     } // lib.optionalAttrs cfg.qt.enable {

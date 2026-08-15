@@ -33,8 +33,8 @@ directory. Rerunning the script updates managed files. If you replace a managed
 symlink with your own file, the script leaves your file alone.
 
 The GTK 3 and GTK 4 user stylesheets are symlinked directly to Caelestia's
-generated `gtk.css`. Existing user stylesheets are preserved instead of being
-overwritten.
+generated `gtk.css` and `gtk4.css`, respectively. Existing user stylesheets are
+preserved instead of being overwritten.
 
 The build and file rendering happen in a temporary directory first. Press
 `Ctrl-C` before the brief apply step to cancel without changing installed files.
