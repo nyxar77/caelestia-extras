@@ -18,6 +18,64 @@ filechooser:backdrop {
   background-color: @portal_bg;
 }
 
+/* Swappy 1.8 builds its paint controls as the only GtkBox directly beneath
+ * window > overlay > paned. It has no style class of its own, so Adwaita's
+ * generic container colour otherwise remains visible beside the themed
+ * headerbar. Keep this structural selector app-specific and away from the
+ * drawing-area sibling. */
+window > overlay > paned > box,
+window:backdrop > overlay > paned > box {
+  color: @portal_fg;
+  background-color: @portal_sidebar;
+  background-image: none;
+  border-right: 1px solid @portal_border;
+}
+
+window > overlay > paned > separator,
+window:backdrop > overlay > paned > separator {
+  min-width: 1px;
+  background-color: @portal_border;
+  background-image: none;
+}
+
+window > overlay > paned > box button,
+window:backdrop > overlay > paned > box button {
+  color: @portal_fg;
+  background-color: @portal_panel;
+  background-image: none;
+  border: 1px solid @portal_border;
+  box-shadow: none;
+}
+
+window > overlay > paned > box button:hover {
+  color: @portal_fg;
+  background-color: @portal_panel;
+  border-color: alpha(@portal_accent, 0.62);
+  box-shadow: inset 0 0 0 1px alpha(@portal_accent, 0.14);
+}
+
+window > overlay > paned > box button:checked,
+window > overlay > paned > box button:active {
+  color: @portal_accent_fg;
+  background-color: @portal_accent;
+  background-image: none;
+  border-color: @portal_accent;
+  box-shadow: none;
+}
+
+window > overlay > paned > box button:checked:hover,
+window > overlay > paned > box button:active:hover {
+  box-shadow: inset 0 0 0 1px alpha(@portal_accent_fg, 0.28);
+}
+
+window > overlay > paned > box button:disabled,
+window:backdrop > overlay > paned > box button:disabled {
+  color: alpha(@portal_muted, 0.68);
+  background-color: alpha(@portal_panel, 0.76);
+  border-color: alpha(@portal_border, 0.60);
+  box-shadow: none;
+}
+
 headerbar,
 headerbar:backdrop,
 .titlebar,
