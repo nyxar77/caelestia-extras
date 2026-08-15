@@ -171,7 +171,7 @@ else
   create_config=false
 fi
 
-for template in gtk-portal.css gtk.css gtk4.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qt6ct-portal.qss; do
+for template in gtk-portal.css gtk.css gtk4.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
   stage_managed \
     "$repo_dir/assets/manual/templates/$template" \
     "templates/$template"
@@ -224,7 +224,7 @@ else
   printf 'keeping user config: %s\n' "$config_file"
 fi
 
-for template in gtk-portal.css gtk.css gtk4.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qt6ct-portal.qss; do
+for template in gtk-portal.css gtk.css gtk4.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
   commit_managed \
     "templates/$template" \
     "$config_home/caelestia/templates/$template"

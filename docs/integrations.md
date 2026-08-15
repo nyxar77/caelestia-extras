@@ -74,9 +74,11 @@ global Qt palette.
 
 ## XDG portals
 
-`portal sync` copies the generated GTK and Qt files into the portal-specific
-locations. The Home Manager module also installs the service drop-ins needed
-to keep the portal processes isolated from the global Qt and GTK settings.
+`portal sync` copies the generated GTK theme and Qt palette into portal-specific
+locations. The Qt screencast picker uses Breeze directly; no portal-wide
+stylesheet overrides its native tab panes, frames, or interaction states. The
+Home Manager module also installs the service drop-ins needed to keep the
+portal processes isolated from the global Qt and GTK settings.
 
 The GTK portal remains isolated under its own theme name. It does not write to
 normal applications' GTK configuration; the GTK integration owns the safe

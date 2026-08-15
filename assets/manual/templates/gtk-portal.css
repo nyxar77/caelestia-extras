@@ -103,7 +103,10 @@ filechooser pathbar button,
 filechooser .path-bar button,
 filechooser pathbar > button,
 filechooser .path-bar > button,
-filechooser #pathbarbox > button {
+filechooser #pathbarbox > button,
+filechooser pathbar button:backdrop,
+filechooser .path-bar button:backdrop,
+filechooser #pathbarbox > button:backdrop {
   min-height: 26px;
   min-width: 26px;
   margin: 1px;
@@ -133,7 +136,110 @@ filechooser #pathbarbox > button:checked {
   border-color: alpha(@portal_accent, 0.58);
 }
 
-filechooser placessidebar row {
+/* GtkFileChooserWidget marks both the file list stack and its empty-search
+ * page as .view. Own the container too, otherwise Adwaita's grey view color
+ * shows through as soon as a search has no results. */
+filechooser .view,
+filechooser .view:backdrop,
+filechooser stack.view,
+filechooser stack.view:backdrop,
+filechooser scrolledwindow,
+filechooser scrolledwindow:backdrop,
+filechooser viewport,
+filechooser viewport:backdrop {
+  color: @portal_fg;
+  background-color: @portal_bg;
+  background-image: none;
+}
+
+filechooser .view .dim-label,
+filechooser .view .dim-label:backdrop,
+filechooser placesview .dim-label,
+filechooser placesview .dim-label:backdrop {
+  color: alpha(@portal_muted, 0.72);
+}
+
+filechooser searchentry,
+filechooser entry,
+filechooser searchentry:backdrop,
+filechooser entry:backdrop {
+  min-height: 30px;
+  padding: 0 9px;
+  color: @portal_fg;
+  caret-color: @portal_accent;
+  background-color: @portal_panel;
+  background-image: none;
+  border: 1px solid @portal_border;
+  border-radius: 7px;
+  box-shadow: none;
+}
+
+filechooser searchentry:hover,
+filechooser entry:hover {
+  border-color: alpha(@portal_accent, 0.58);
+}
+
+filechooser searchentry:focus,
+filechooser entry:focus {
+  border-color: @portal_accent;
+  box-shadow: inset 0 0 0 1px alpha(@portal_accent, 0.22);
+}
+
+filechooser searchentry selection,
+filechooser entry selection {
+  color: @portal_accent_fg;
+  background-color: @portal_accent;
+}
+
+filechooser searchentry image,
+filechooser entry image,
+filechooser spinner {
+  color: @portal_muted;
+}
+
+filechooser placesview,
+filechooser placesview:backdrop,
+filechooser placesview stack,
+filechooser placesview stack:backdrop,
+filechooser placesview frame,
+filechooser placesview frame:backdrop,
+filechooser placesview list,
+filechooser placesview list:backdrop {
+  color: @portal_fg;
+  background-color: @portal_bg;
+  background-image: none;
+  border-color: @portal_border;
+  box-shadow: none;
+}
+
+filechooser placesview row,
+filechooser placesview row:backdrop {
+  min-height: 40px;
+  color: @portal_fg;
+  background-color: transparent;
+  background-image: none;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+filechooser placesview row.activatable:hover,
+filechooser placesview row:hover {
+  color: @portal_fg;
+  background-color: transparent;
+  border-color: alpha(@portal_border, 0.72);
+  box-shadow: inset 0 0 0 1px alpha(@portal_accent, 0.14);
+}
+
+filechooser placesview actionbar,
+filechooser placesview actionbar:backdrop {
+  color: @portal_fg;
+  background-color: @portal_bg;
+  border-top: 1px solid @portal_border;
+  box-shadow: none;
+}
+
+filechooser placessidebar row,
+filechooser placessidebar row:backdrop {
   min-height: 34px;
   margin: 2px 4px;
   padding: 5px 9px;
@@ -146,24 +252,58 @@ filechooser placessidebar row {
 }
 
 filechooser placessidebar.sidebar,
-filechooser placessidebar {
+filechooser placessidebar,
+filechooser placessidebar.sidebar:backdrop,
+filechooser placessidebar:backdrop {
   min-width: 164px;
   padding: 7px 5px;
   background-color: @portal_sidebar;
   border-right: 1px solid @portal_border;
 }
 
-filechooser placessidebar row:hover {
+filechooser placessidebar row:hover,
+filechooser placessidebar row:backdrop:hover,
+placessidebar row:hover,
+placessidebar row:backdrop:hover,
+.sidebar row:hover,
+.sidebar row:backdrop:hover,
+.navigation-sidebar row:hover,
+.navigation-sidebar row:backdrop:hover {
   color: @portal_fg;
   background-color: @portal_panel;
   border-color: alpha(@portal_border, 0.62);
 }
 
 filechooser placessidebar row:selected,
+filechooser placessidebar row:selected:hover,
+filechooser placessidebar row:selected:focus,
 filechooser placessidebar row:backdrop:selected,
+filechooser placessidebar row:backdrop:selected:hover,
+placessidebar row:selected,
+placessidebar row:selected:hover,
+placessidebar row:selected:focus,
+placessidebar row:backdrop:selected,
+placessidebar row:backdrop:selected:hover,
+.sidebar row:selected,
+.sidebar row:selected:hover,
+.sidebar row:selected:focus,
+.sidebar row:backdrop:selected,
+.sidebar row:backdrop:selected:hover,
+.navigation-sidebar row:selected,
+.navigation-sidebar row:selected:hover,
+.navigation-sidebar row:selected:focus,
+.navigation-sidebar row:backdrop:selected,
+.navigation-sidebar row:backdrop:selected:hover,
 filechooser treeview.view:selected,
+filechooser treeview.view:selected:hover,
 filechooser treeview.view:selected:focus,
-filechooser treeview.view:selected:backdrop {
+filechooser treeview.view:selected:backdrop,
+filechooser treeview.view:selected:backdrop:hover,
+treeview.view:selected,
+treeview.view:selected:hover,
+treeview.view:selected:focus,
+treeview.view:selected:backdrop,
+treeview.view:selected:backdrop:hover {
   color: @portal_accent_fg;
   background-color: @portal_accent;
   background-image: none;
@@ -171,7 +311,19 @@ filechooser treeview.view:selected:backdrop {
   box-shadow: none;
 }
 
-filechooser treeview.view header button {
+placessidebar row:selected:hover,
+placessidebar row:backdrop:selected:hover,
+.sidebar row:selected:hover,
+.sidebar row:backdrop:selected:hover,
+.navigation-sidebar row:selected:hover,
+.navigation-sidebar row:backdrop:selected:hover,
+treeview.view:selected:hover,
+treeview.view:selected:backdrop:hover {
+  box-shadow: inset 0 0 0 1px alpha(@portal_accent_fg, 0.28);
+}
+
+filechooser treeview.view header button,
+filechooser treeview.view header button:backdrop {
   min-height: 32px;
   padding: 0 10px;
   color: @portal_fg;
@@ -185,7 +337,8 @@ filechooser treeview.view header button {
   box-shadow: none;
 }
 
-filechooser treeview.view {
+filechooser treeview.view,
+filechooser treeview.view:backdrop {
   min-height: 32px;
   padding: 4px 10px;
   color: @portal_fg;
@@ -209,14 +362,20 @@ filechooser scrolledwindow + actionbar > revealer > box {
   box-shadow: none;
 }
 
-filechooser checkbutton {
+filechooser checkbutton,
+checkbutton,
+checkbutton:backdrop {
   min-height: 26px;
   padding: 1px 3px;
   color: @portal_muted;
 }
 
 filechooser checkbutton check,
-filechooser checkbutton > check {
+filechooser checkbutton > check,
+checkbutton check,
+checkbutton > check,
+checkbutton check:backdrop,
+checkbutton > check:backdrop {
   min-width: 13px;
   min-height: 13px;
   margin-right: 5px;
@@ -228,10 +387,27 @@ filechooser checkbutton > check {
 }
 
 filechooser checkbutton check:checked,
-filechooser checkbutton > check:checked {
+filechooser checkbutton > check:checked,
+checkbutton check:checked,
+checkbutton > check:checked,
+checkbutton check:backdrop:checked,
+checkbutton > check:backdrop:checked {
   color: @portal_accent_fg;
   background-color: @portal_accent;
+  background-image: none;
   border-color: @portal_accent;
+  box-shadow: none;
+}
+
+checkbutton:hover check,
+checkbutton:hover > check {
+  border-color: alpha(@portal_accent, 0.72);
+  box-shadow: inset 0 0 0 1px alpha(@portal_accent, 0.18);
+}
+
+checkbutton:hover check:checked,
+checkbutton:hover > check:checked {
+  box-shadow: inset 0 0 0 1px alpha(@portal_accent_fg, 0.28);
 }
 
 filechooser scrollbar slider {

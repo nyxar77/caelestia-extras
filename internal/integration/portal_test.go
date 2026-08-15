@@ -73,7 +73,8 @@ func TestSyncPortalCopiesGeneratedFiles(t *testing.T) {
 	dataHome := filepath.Join(root, "data")
 	write(t, filepath.Join(theme, "gtk-portal.css"), "portal")
 	write(t, filepath.Join(theme, "qt-caelestia.conf"), "palette")
-	write(t, filepath.Join(theme, "qt6ct-portal.qss"), "stylesheet")
+	staleQSS := filepath.Join(configHome, "portal-qt", "qt6ct", "qss", "caelestia.qss")
+	write(t, staleQSS, "old broad stylesheet")
 
 	if err := SyncPortal(config.Portal{ThemeDir: theme, ConfigHome: configHome, DataHome: dataHome, ThemeName: "Caelestia-Portal"}); err != nil {
 		t.Fatal(err)
@@ -83,13 +84,15 @@ func TestSyncPortalCopiesGeneratedFiles(t *testing.T) {
 		filepath.Join(dataHome, "themes", "Caelestia-Portal", "gtk-3.0", "gtk.css"): "portal",
 		filepath.Join(dataHome, "themes", "Caelestia-Portal", "gtk-4.0", "gtk.css"): "portal",
 		filepath.Join(configHome, "portal-qt", "qt6ct", "colors", "caelestia.conf"): "palette",
-		filepath.Join(configHome, "portal-qt", "qt6ct", "qss", "caelestia.qss"):     "stylesheet",
 	}
 	for path, expected := range checks {
 		value, err := os.ReadFile(path)
 		if err != nil || string(value) != expected {
 			t.Fatalf("%s = %q, %v", path, value, err)
 		}
+	}
+	if _, err := os.Stat(staleQSS); !os.IsNotExist(err) {
+		t.Fatalf("stale portal Qt stylesheet still exists: %v", err)
 	}
 }
 
@@ -99,7 +102,6 @@ func TestSyncPortalNeverRemovesSharedQtFiles(t *testing.T) {
 	configHome := filepath.Join(root, "config")
 	dataHome := filepath.Join(root, "data")
 	write(t, filepath.Join(theme, "qt-caelestia.conf"), "palette")
-	write(t, filepath.Join(theme, "qt6ct-portal.qss"), "portal stylesheet")
 	sharedPalette := filepath.Join(configHome, "qt6ct", "colors", "caelestia.conf")
 	sharedStylesheet := filepath.Join(configHome, "qt6ct", "qss", "caelestia.qss")
 	write(t, sharedPalette, "palette")

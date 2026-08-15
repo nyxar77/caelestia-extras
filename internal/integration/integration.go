@@ -246,7 +246,7 @@ func watchedFiles(configuration config.Config) []string {
 		add(filepath.Join(configuration.Qt.ThemeDir, "breeze-caelestia.colors"))
 	}
 	if configuration.Portal != nil {
-		for _, name := range []string{"gtk-portal.css", "qt-caelestia.conf", "qt6ct-portal.qss"} {
+		for _, name := range []string{"gtk-portal.css", "qt-caelestia.conf"} {
 			add(filepath.Join(configuration.Portal.ThemeDir, name))
 		}
 	}
@@ -554,11 +554,13 @@ func SyncPortal(portal config.Portal) error {
 		}
 	}
 
+	// Older releases installed a broad QWidget stylesheet here. It flattened
+	// Breeze's native tab panes and frames in the screencast picker. This is an
+	// isolated integration-owned directory, so removing that stale override is
+	// safe; the generated palette and Breeze remain the only Qt theme owners.
 	portalQSS := filepath.Join(portalQt, "qss", "caelestia.qss")
-	if exists(filepath.Join(theme, "qt6ct-portal.qss")) {
-		if err := copyFile(filepath.Join(theme, "qt6ct-portal.qss"), portalQSS); err != nil {
-			return err
-		}
+	if err := os.Remove(portalQSS); err != nil && !os.IsNotExist(err) {
+		return err
 	}
 	return nil
 }

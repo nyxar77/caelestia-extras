@@ -34,7 +34,6 @@ in {
         keyboard_scheme=2
         menus_have_icons=true
         show_shortcuts_in_context_menus=true
-        stylesheets=${cfg.configHome}/portal-qt/qt6ct/qss/caelestia.qss
         toolbutton_style=4
         underline_shortcut=1
         wheel_scroll_lines=3
@@ -54,7 +53,6 @@ in {
       '';
 
       "caelestia/templates/gtk-portal.css".source = ../assets/manual/templates/gtk-portal.css;
-      "caelestia/templates/qt6ct-portal.qss".source = ../assets/manual/templates/qt6ct-portal.qss;
     };
 
     xdg.dataFile = {
