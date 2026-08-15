@@ -5,7 +5,7 @@ umask 022
 
 usage() {
   printf '%s\n' \
-    "Usage: scripts/install.sh [install|update] [--enable cursor,gtk,hyprtoolkit,qt,qbittorrent,portal]" \
+    "Usage: scripts/install.sh [install|update] [--enable all]" \
     "" \
     "Builds the current checkout, installs managed files, and preserves user configuration." \
     "Use --enable after configuring the integrations you want to run." \
@@ -159,11 +159,14 @@ else
   create_config=false
 fi
 
-for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
+for template in gtk-portal.css gtk.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qt6ct-portal.qss; do
   stage_managed \
     "$repo_dir/assets/manual/templates/$template" \
     "templates/$template"
 done
+stage_managed \
+  "$repo_dir/assets/manual/templates/qt6ct-caelestia.qss" \
+  "templates/prismlauncher.qss"
 
 for version in gtk-3.0 gtk-4.0; do
   stage_managed \
@@ -209,14 +212,25 @@ else
   printf 'keeping user config: %s\n' "$config_file"
 fi
 
-for template in gtk-portal.css gtk-global.css gtk.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qbittorrent.qss qbittorrent.json qt6ct-caelestia.conf qt6ct-portal.qss qt6ct-caelestia.qss; do
+for template in gtk-portal.css gtk.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors qt6ct-portal.qss; do
   commit_managed \
     "templates/$template" \
     "$config_home/caelestia/templates/$template"
 done
+for version in gtk-3.0 gtk-4.0; do
+  link_managed \
+    "$theme_dir/gtk.css" \
+    "$config_home/$version/gtk.css"
+done
+commit_managed \
+  "templates/prismlauncher.qss" \
+  "$config_home/caelestia/templates/prismlauncher.qss"
 link_managed \
   "$theme_dir/prismlauncher.json" \
   "$data_home/PrismLauncher/themes/caelestia-breeze/theme.json"
+link_managed \
+  "$theme_dir/prismlauncher.qss" \
+  "$data_home/PrismLauncher/themes/caelestia-breeze/themeStyle.css"
 for version in qt5ct qt6ct; do
   commit_managed \
     "$version/$version.conf" \
@@ -245,11 +259,26 @@ for source in "$repo_dir"/systemd/*.in; do
     "systemd/$unit" \
     "$config_home/systemd/user/$unit"
 done
+for obsolete in \
+  caelestia-extras-cursor.path caelestia-extras-cursor.service \
+  caelestia-extras-gtk.path caelestia-extras-gtk.service \
+  caelestia-extras-hyprtoolkit.path caelestia-extras-hyprtoolkit.service \
+  caelestia-extras-portal.path caelestia-extras-portal.service \
+  caelestia-extras-qt.path caelestia-extras-qt.service \
+  caelestia-extras-xcursor.service
+do
+  destination="$config_home/systemd/user/$obsolete"
+  managed="$managed_root/systemd/$obsolete"
+  if [ -L "$destination" ] && [ "$(readlink "$destination")" = "$managed" ]; then
+    rm -f "$destination"
+  fi
+  rm -f "$managed"
+done
 
 printf '%s complete: %s\n' "$mode" "$binary"
 
 if [ -z "$enable" ]; then
-  printf '%s\n' "No services enabled. Configure the integrations, then rerun with --enable cursor,gtk,hyprtoolkit,qt,qbittorrent,portal."
+  printf '%s\n' "No services enabled. Configure the integrations, then rerun with --enable all."
   exit 0
 fi
 
@@ -257,30 +286,15 @@ need systemctl
 "$binary" --config "$config_file" config validate
 systemctl --user daemon-reload
 
-old_ifs=$IFS
-if [ "$enable" = "all" ]; then
-  enable=cursor,gtk,hyprtoolkit,qt,qbittorrent,portal
-fi
-IFS=,
-set -- $enable
-IFS=$old_ifs
-for integration in "$@"; do
-  case "$integration" in
-    cursor|gtk|hyprtoolkit|qt|qbittorrent|portal)
-      path_unit="caelestia-extras-$integration.path"
-      service_unit="caelestia-extras-$integration.service"
-      ;;
-    *)
-      fail "unknown integration in --enable: $integration"
-      ;;
-  esac
-  systemctl --user enable --now "$path_unit"
-  systemctl --user start "$service_unit"
-  if [ "$integration" = qt ]; then
-    link_managed \
-      "$config_home/caelestia-extras/managed/environment.d/10-caelestia-qt.conf" \
-      "$config_home/environment.d/10-caelestia-qt.conf"
-  fi
+[ "$enable" = all ] || fail "the unified watcher accepts only --enable all"
+for obsolete in cursor gtk hyprtoolkit portal qt; do
+  systemctl --user disable --now "caelestia-extras-$obsolete.path" >/dev/null 2>&1 || true
 done
+systemctl --user stop caelestia-extras-xcursor.service >/dev/null 2>&1 || true
+link_managed \
+  "$config_home/caelestia-extras/managed/environment.d/10-caelestia-qt.conf" \
+  "$config_home/environment.d/10-caelestia-qt.conf"
+systemctl --user enable --now caelestia-extras-watch.service
+"$binary" --config "$config_file" sync
 
-printf '%s\n' "Selected services are enabled. Log out and back in before testing portal changes."
+printf '%s\n' "All configured integrations are initialized and watching for runtime changes."

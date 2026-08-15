@@ -1,20 +1,32 @@
-QWidget {
+/* Prism's toolbar can ignore the custom QPalette text roles under Breeze. */
+QToolBar {
   color: #{{ onSurface.hex }};
   background-color: #{{ surface.hex }};
-  selection-background-color: #{{ primary.hex }};
-  selection-color: #{{ onPrimary.hex }};
 }
 
-QPushButton,
-QComboBox,
-QLineEdit {
+QToolBar QToolButton {
+  color: #{{ onSurface.hex }};
+  background-color: transparent;
+}
+
+QToolBar QToolButton:hover,
+QToolBar QToolButton:checked {
+  color: #{{ onPrimaryContainer.hex }};
+  background-color: #{{ primaryContainer.hex }};
+}
+
+QToolBar QToolButton:disabled {
+  color: #{{ onSurfaceVariant.hex }};
+}
+
+QMenuBar,
+QMenu {
+  color: #{{ onSurface.hex }};
   background-color: #{{ surfaceContainer.hex }};
-  border: 1px solid #{{ outlineVariant.hex }};
 }
 
-QPushButton:hover,
-QPushButton:checked {
-  color: #{{ onPrimary.hex }};
-  background-color: #{{ primary.hex }};
-  border-color: #{{ primary.hex }};
+QMenuBar::item:selected,
+QMenu::item:selected {
+  color: #{{ onPrimaryContainer.hex }};
+  background-color: #{{ primaryContainer.hex }};
 }

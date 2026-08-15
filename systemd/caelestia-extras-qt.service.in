@@ -1,7 +1,0 @@
-[Unit]
-Description=Sync shared Qt theme with Caelestia
-After=graphical-session.target
-
-[Service]
-Type=oneshot
-ExecStart="@BINARY@" --config "@CONFIG_FILE@" qt sync

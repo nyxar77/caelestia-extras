@@ -19,6 +19,16 @@ func TestExecuteHelpDoesNotRequireConfig(t *testing.T) {
 	}
 }
 
+func TestExecuteSyncHelpDoesNotRequireConfig(t *testing.T) {
+	var output bytes.Buffer
+	if err := execute([]string{"help", "sync"}, &output, &output); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "Applies all enabled integrations concurrently") {
+		t.Fatalf("unexpected help output: %s", output.String())
+	}
+}
+
 func TestExecuteFlagHelpSucceeds(t *testing.T) {
 	var output bytes.Buffer
 	if err := execute([]string{"--help"}, &output, &output); err != nil {
@@ -69,8 +79,15 @@ func TestExecuteConfigValidate(t *testing.T) {
 	if err := os.WriteFile(path, []byte("[hyprtoolkit]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := execute([]string{"--config", path, "config", "validate"}, &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+	var output bytes.Buffer
+	if err := execute([]string{"--config", path, "config", "validate"}, &output, &bytes.Buffer{}); err != nil {
 		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "Configuration is valid: "+path) {
+		t.Fatalf("validation did not confirm success: %q", output.String())
+	}
+	if strings.Contains(output.String(), "\x1b[") {
+		t.Fatalf("redirected output contains terminal colours: %q", output.String())
 	}
 }
 

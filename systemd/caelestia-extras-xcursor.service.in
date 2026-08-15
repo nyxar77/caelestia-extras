@@ -1,6 +1,0 @@
-[Unit]
-Description=Refresh the XCursor fallback for Caelestia
-
-[Service]
-Type=oneshot
-ExecStart="@BINARY@" --config "@CONFIG_FILE@" cursor sync-xcursor

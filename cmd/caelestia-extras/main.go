@@ -25,7 +25,7 @@ func (e *usageError) Unwrap() error { return e.err }
 func main() {
 	if err := run(os.Args[1:]); err != nil {
 		var usage *usageError
-		fmt.Fprintln(os.Stderr, "error:", err)
+		printError(os.Stderr, err)
 		if errors.As(err, &usage) {
 			fmt.Fprintln(os.Stderr, "Run 'caelestia-extras --help' for usage.")
 		}
@@ -38,6 +38,7 @@ func run(arguments []string) error {
 }
 
 func execute(arguments []string, stdout, stderr io.Writer) error {
+	ui := newTerminalUI(stdout, stderr)
 	flags := flag.NewFlagSet("caelestia-extras", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	flags.Usage = func() { _, _ = io.WriteString(stderr, generalHelp) }
@@ -84,6 +85,14 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 	}
 
 	switch args[0] {
+	case "sync":
+		return ui.run("Synchronizing desktop integrations", "Desktop integrations synchronized", "desktop sync", func() error {
+			return integration.SyncAll(configFile, true, true)
+		})
+	case "watch":
+		return ui.run("Watching Caelestia theme files", "Theme watcher stopped", "theme watcher", func() error {
+			return integration.Watch(configFile, ui.progress, ui.warning)
+		})
 	case "cursor":
 		if configFile.Cursor == nil {
 			return fmt.Errorf("cursor is disabled in %q; add a [cursor] section", *configPath)
@@ -97,11 +106,11 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 		}
 		switch args[1] {
 		case "sync":
-			return runIntegration("cursor sync", func() error {
+			return ui.run("Building and applying the cursor theme", "Cursor theme synchronized", "cursor sync", func() error {
 				return cursor.Sync(*configFile.Cursor, configFile.Scheme.File, backend)
 			})
 		case "sync-xcursor":
-			return runIntegration("cursor XCursor sync", func() error {
+			return ui.run("Building the XCursor fallback", "XCursor fallback synchronized", "cursor XCursor sync", func() error {
 				return cursor.SyncXCursor(*configFile.Cursor, configFile.Scheme.File)
 			})
 		default:
@@ -114,7 +123,7 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 		if len(args) != 2 || args[1] != "sync" {
 			return usage("gtk expects: sync")
 		}
-		return runIntegration("GTK sync", func() error {
+		return ui.run("Synchronizing GTK preferences", "GTK preferences synchronized", "GTK sync", func() error {
 			return integration.SyncGTK(*configFile.GTK, configFile.Scheme.File)
 		})
 	case "hyprtoolkit":
@@ -124,14 +133,14 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 		if len(args) != 2 || args[1] != "sync" {
 			return usage("hyprtoolkit expects: sync")
 		}
-		return runIntegration("Hyprtoolkit sync", func() error {
+		return ui.run("Applying the Hyprtoolkit theme", "Hyprtoolkit theme synchronized", "Hyprtoolkit sync", func() error {
 			return integration.SyncHyprtoolkit(*configFile.Hyprtoolkit)
 		})
 	case "pavucontrol":
 		if configFile.Pavucontrol == nil {
 			return fmt.Errorf("pavucontrol is disabled in %q; add a [pavucontrol] section", *configPath)
 		}
-		return runIntegration("launch pavucontrol", func() error {
+		return ui.run("Launching pavucontrol", "pavucontrol exited", "launch pavucontrol", func() error {
 			return integration.LaunchPavucontrol(*configFile.Pavucontrol, args[1:])
 		})
 	case "qt":
@@ -141,7 +150,7 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 		if len(args) != 2 || args[1] != "sync" {
 			return usage("qt expects: sync")
 		}
-		return runIntegration("Qt sync", func() error {
+		return ui.run("Synchronizing the Qt palette", "Qt palette synchronized", "Qt sync", func() error {
 			return integration.SyncQt(*configFile.Qt)
 		})
 	case "qbittorrent":
@@ -151,21 +160,23 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 		if len(args) != 2 || args[1] != "sync" {
 			return usage("qbittorrent expects: sync")
 		}
-		return runIntegration("qBittorrent sync", func() error {
+		return ui.run("Selecting native Breeze for qBittorrent", "qBittorrent will use native Breeze on its next start", "qBittorrent sync", func() error {
 			return integration.SyncQBittorrent(*configFile.QBittorrent)
 		})
 	case "config":
-		if err := configFile.Validate(); err != nil {
-			return err
-		}
-		backend, err := compositor.New(configFile.Compositor.Backend)
-		if err != nil {
-			return err
-		}
-		if configFile.Cursor != nil {
-			return backend.Validate()
-		}
-		return nil
+		return ui.run("Validating "+*configPath, "Configuration is valid: "+*configPath, "config validation", func() error {
+			if err := configFile.Validate(); err != nil {
+				return err
+			}
+			backend, err := compositor.New(configFile.Compositor.Backend)
+			if err != nil {
+				return err
+			}
+			if configFile.Cursor != nil {
+				return backend.Validate()
+			}
+			return nil
+		})
 	case "portal":
 		if configFile.Portal == nil {
 			return fmt.Errorf("portal sync is disabled in %q; add a [portal] section", *configPath)
@@ -173,16 +184,20 @@ func execute(arguments []string, stdout, stderr io.Writer) error {
 		if len(args) != 2 || args[1] != "sync" {
 			return usage("portal expects: sync")
 		}
-		return runIntegration("portal sync", func() error {
+		return ui.run("Synchronizing desktop portals", "Desktop portal themes synchronized", "portal sync", func() error {
 			return integration.SyncPortal(*configFile.Portal)
 		})
 	default:
-		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, qt, qbittorrent, portal, config, completion, help, or version", args[0]))
+		return usage(fmt.Sprintf("unknown command %q; expected sync, watch, cursor, gtk, hyprtoolkit, pavucontrol, qt, qbittorrent, portal, config, completion, help, or version", args[0]))
 	}
 }
 
 func validateCommand(args []string) error {
 	switch args[0] {
+	case "sync", "watch":
+		if len(args) != 1 {
+			return usage(fmt.Sprintf("%s does not accept arguments", args[0]))
+		}
 	case "cursor":
 		if len(args) != 2 {
 			return usage("cursor expects one of: sync, sync-xcursor")
@@ -201,16 +216,74 @@ func validateCommand(args []string) error {
 			return usage("config expects: validate")
 		}
 	default:
-		return usage(fmt.Sprintf("unknown command %q; expected cursor, gtk, hyprtoolkit, pavucontrol, qt, qbittorrent, portal, config, completion, help, or version", args[0]))
+		return usage(fmt.Sprintf("unknown command %q; expected sync, watch, cursor, gtk, hyprtoolkit, pavucontrol, qt, qbittorrent, portal, config, completion, help, or version", args[0]))
 	}
 	return nil
 }
 
-func runIntegration(name string, run func() error) error {
+type terminalUI struct {
+	stdout       io.Writer
+	stderr       io.Writer
+	stdoutColour bool
+	stderrColour bool
+}
+
+func newTerminalUI(stdout, stderr io.Writer) terminalUI {
+	return terminalUI{
+		stdout:       stdout,
+		stderr:       stderr,
+		stdoutColour: supportsColour(stdout),
+		stderrColour: supportsColour(stderr),
+	}
+}
+
+func (ui terminalUI) run(action, completed, name string, run func() error) error {
+	ui.status("\x1b[36m", "→", action+"...")
 	if err := run(); err != nil {
 		return fmt.Errorf("%s: %w", name, err)
 	}
+	ui.status("\x1b[32m", "✓", completed+".")
 	return nil
+}
+
+func (ui terminalUI) warning(err error) {
+	prefix, reset := "", ""
+	if ui.stderrColour {
+		prefix, reset = "\x1b[33m", "\x1b[0m"
+	}
+	fmt.Fprintf(ui.stderr, "%s!%s Sync warning: %v\n", prefix, reset, err)
+}
+
+func (ui terminalUI) progress(message string) {
+	ui.status("\x1b[36m", "→", message+"...")
+}
+
+func (ui terminalUI) status(colour, marker, message string) {
+	prefix, reset := "", ""
+	if ui.stdoutColour {
+		prefix, reset = colour, "\x1b[0m"
+	}
+	fmt.Fprintf(ui.stdout, "%s%s%s %s\n", prefix, marker, reset, message)
+}
+
+func printError(stderr io.Writer, err error) {
+	prefix, reset := "", ""
+	if supportsColour(stderr) {
+		prefix, reset = "\x1b[31m", "\x1b[0m"
+	}
+	fmt.Fprintf(stderr, "%serror:%s %v\n", prefix, reset, err)
+}
+
+func supportsColour(writer io.Writer) bool {
+	if os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb" {
+		return false
+	}
+	file, ok := writer.(*os.File)
+	if !ok {
+		return false
+	}
+	info, err := file.Stat()
+	return err == nil && info.Mode()&os.ModeCharDevice != 0
 }
 
 func usage(message string) error {
@@ -228,6 +301,10 @@ func writeHelp(args []string, stdout io.Writer) error {
 
 	var help string
 	switch args[0] {
+	case "sync":
+		help = syncHelp
+	case "watch":
+		help = watchHelp
 	case "cursor":
 		help = cursorHelp
 	case "gtk":
@@ -278,13 +355,15 @@ Usage:
   caelestia-extras [options] <command> [arguments]
 
 Commands:
+  sync                     Apply every enabled integration now
+  watch                    Watch and coalesce runtime theme changes
   cursor sync              Build and apply the active Hyprcursor theme
   cursor sync-xcursor      Build the XCursor fallback
   gtk sync                 Sync the GTK theme and colour preference
   hyprtoolkit sync         Apply generated Hyprtoolkit configuration
   pavucontrol [arguments]  Launch the configured volume mixer
   qt sync                  Apply the shared Qt palette and Breeze colour scheme
-  qbittorrent sync         Build and select the qBittorrent theme
+  qbittorrent sync         Select native Qt/Breeze theming for qBittorrent
   portal sync              Apply generated portal themes
   config validate          Check files, tools, and enabled integrations
   completion <shell>       Print shell completion for bash, zsh, or fish
@@ -297,13 +376,27 @@ Options:
   -h, --help               Show this help
 
 Examples:
-  caelestia-extras cursor sync
+  caelestia-extras sync
   caelestia-extras --config ~/.config/caelestia-extras/work.toml gtk sync
   caelestia-extras completion zsh > ~/.zfunc/_caelestia-extras
 
 Configuration:
   Default: $XDG_CONFIG_HOME/caelestia-extras/config.toml
   Help:    https://github.com/nyxar77/caelestia-extras#manual-configuration
+`
+
+const syncHelp = `Usage: caelestia-extras sync
+
+Applies all enabled integrations concurrently, including the XCursor fallback,
+then reloads the portal backends so their new palette is used immediately.
+`
+
+const watchHelp = `Usage: caelestia-extras watch
+
+Watches Caelestia's scheme and generated theme files. Rapid wallpaper changes
+are collapsed into one update of the newest completed theme. The expensive
+XCursor fallback runs only after wallpaper changes have been quiet for ten
+seconds.
 `
 
 const cursorHelp = `Usage: caelestia-extras cursor <action>
@@ -342,8 +435,9 @@ Requires a [qt] section in the configuration.
 
 const qbittorrentHelp = `Usage: caelestia-extras qbittorrent sync
 
-Builds the configured qBittorrent theme. It does nothing when qBittorrent or
-Qt's rcc tool is not installed. Restart qBittorrent to load an updated theme.
+Disables qBittorrent's custom UI theme so the native Qt platform palette and
+widget style remain consistent for active, inactive, and disabled windows.
+Restart qBittorrent after changing this setting.
 `
 
 const portalHelp = `Usage: caelestia-extras portal sync
@@ -355,6 +449,7 @@ Requires a [portal] section in the configuration.
 const configHelp = `Usage: caelestia-extras config validate
 
 Checks the configured files, required commands, and enabled integrations.
+Prints an explicit confirmation and the checked path when validation succeeds.
 `
 
 const completionHelp = `Usage: caelestia-extras completion <shell>
@@ -374,13 +469,13 @@ _caelestia_extras() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   command="${COMP_WORDS[1]}"
   if [[ $COMP_CWORD == 1 ]]; then
-    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version" -- "$cur"))
+    COMPREPLY=($(compgen -W "sync watch cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == cursor ]]; then
     COMPREPLY=($(compgen -W "sync sync-xcursor" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == completion ]]; then
     COMPREPLY=($(compgen -W "bash zsh fish" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == help ]]; then
-    COMPREPLY=($(compgen -W "cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion" -- "$cur"))
+    COMPREPLY=($(compgen -W "sync watch cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion" -- "$cur"))
   fi
 }
 complete -F _caelestia_extras caelestia-extras
@@ -391,25 +486,25 @@ const zshCompletion = `#compdef caelestia-extras
 _arguments \
   '(-config 1)'{-config,-config}'[configuration file]:file:_files' \
   '(-version 1)'--version'[show version]' \
-  '1:command:(cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version)' \
+  '1:command:(sync watch cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version)' \
   '*::argument:->args'
 
 case $words[2] in
   cursor) _arguments '1:action:(sync sync-xcursor)' ;;
   qt|qbittorrent) _arguments '1:action:(sync)' ;;
   completion) _arguments '1:shell:(bash zsh fish)' ;;
-  help) _arguments '1:command:(cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion)' ;;
+  help) _arguments '1:command:(sync watch cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion)' ;;
   config) _arguments '1:action:(validate)' ;;
 esac
 `
 
-const fishCompletion = `complete -c caelestia-extras -f -n '__fish_use_subcommand' -a 'cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version'
+const fishCompletion = `complete -c caelestia-extras -f -n '__fish_use_subcommand' -a 'sync watch cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version'
 complete -c caelestia-extras -l config -r -d 'configuration file'
 complete -c caelestia-extras -l version -d 'show version'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from cursor' -a 'sync sync-xcursor'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from qt' -a 'sync'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from qbittorrent' -a 'sync'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from completion' -a 'bash zsh fish'
-complete -c caelestia-extras -n '__fish_seen_subcommand_from help' -a 'cursor gtk hyprtoolkit pavucontrol qbittorrent portal config completion'
+complete -c caelestia-extras -n '__fish_seen_subcommand_from help' -a 'sync watch cursor gtk hyprtoolkit pavucontrol qbittorrent portal config completion'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from config' -a 'validate'
 `

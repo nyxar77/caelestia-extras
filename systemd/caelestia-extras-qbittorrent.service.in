@@ -1,7 +1,0 @@
-[Unit]
-Description=Sync qBittorrent with Caelestia
-After=graphical-session.target
-
-[Service]
-Type=oneshot
-ExecStart="@BINARY@" --config "@CONFIG_FILE@" qbittorrent sync

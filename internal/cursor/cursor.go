@@ -101,9 +101,6 @@ func Sync(cursor config.Cursor, schemeFile string, backend compositor.Backend) e
 			return err
 		}
 		syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-		if cursor.XCursorFallback {
-			_ = exec.Command("systemctl", "--user", "start", "--no-block", "caelestia-extras-xcursor.service").Run()
-		}
 		return nil
 	}
 	return errors.New("scheme changed too often; cursor was not applied")

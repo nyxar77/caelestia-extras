@@ -13,7 +13,7 @@ use:
 - XCursor fallback: `cbmp` and `ctgen`
 - pavucontrol: `pavucontrol-qt`
 - Shared Qt theme: `qt5ct`, `qt6ct`, and Breeze for Qt 6
-- qBittorrent: `qbittorrent` and Qt's `rcc`
+- qBittorrent: `qbittorrent`
 
 ## Install or update
 
@@ -31,6 +31,10 @@ Managed templates, portal files, and systemd units are stored under
 `$XDG_CONFIG_HOME/caelestia-extras/managed/`. Active files are symlinks to that
 directory. Rerunning the script updates managed files. If you replace a managed
 symlink with your own file, the script leaves your file alone.
+
+The GTK 3 and GTK 4 user stylesheets are symlinked directly to Caelestia's
+generated `gtk.css`. Existing user stylesheets are preserved instead of being
+overwritten.
 
 The build and file rendering happen in a temporary directory first. Press
 `Ctrl-C` before the brief apply step to cancel without changing installed files.
@@ -52,23 +56,22 @@ Edit the config first, then check it:
 ~/.local/bin/caelestia-extras config validate
 ```
 
-Enable only the integrations you configured:
+Enable the unified watcher after configuring the integrations you want:
 
 ```sh
-./scripts/install.sh --enable cursor,gtk,qt,qbittorrent
+./scripts/install.sh --enable all
 ```
 
-Valid names are `cursor`, `gtk`, `hyprtoolkit`, `qt`, `qbittorrent`, and `portal`.
-Use `all` for all six. The script enables the matching path units and runs an
-initial sync.
+The script enables one watcher and runs `caelestia-extras sync` once. Disabled
+config sections are skipped.
 
 `pavucontrol` has no background service; run `caelestia-extras pavucontrol`
-when you want it.
+when you want it. qBittorrent's native palette is owned by the shared Qt sync.
+Restart qBittorrent once after changing its appearance setting; later palette
+updates are propagated by qt6ct.
 
-qBittorrent is updated by a path unit but is not restarted for you.
-
-Portal service drop-ins take effect after the next login. The script does not
-restart portal processes for you.
+The initial sync restarts the portal backends so their scoped GTK and Qt themes
+take effect immediately.
 
 The `qt` integration also writes an `environment.d` file and a generated
 Caelestia KDE colour scheme. Log out and back in before launching Qt
@@ -77,13 +80,12 @@ applications so they receive the Qt5/Qt6 platform theme.
 ## XDG paths
 
 The script respects `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, and
-`XDG_BIN_HOME`. The generated units watch the matching default Caelestia paths.
+`XDG_BIN_HOME`. The watcher reads source paths from `config.toml`.
 
-If your config overrides `scheme.file`, `hyprtoolkit.theme_dir`, or
-`portal.theme_dir`, pass the same paths while installing and updating:
+`CAELESTIA_EXTRAS_THEME_DIR` is needed only when the manual PrismLauncher
+symlink uses a non-default generated-theme directory:
 
 ```sh
-CAELESTIA_EXTRAS_SCHEME_FILE=/path/to/scheme.json \
 CAELESTIA_EXTRAS_THEME_DIR=/path/to/theme \
 ./scripts/install.sh update
 ```

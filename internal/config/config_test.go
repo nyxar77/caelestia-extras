@@ -47,9 +47,9 @@ func TestLoadSetsQtDataHome(t *testing.T) {
 	}
 }
 
-func TestLoadNamesTheDefaultQBittorrentTheme(t *testing.T) {
-	dataHome := filepath.Join(t.TempDir(), "data")
-	t.Setenv("XDG_DATA_HOME", dataHome)
+func TestLoadSetsDefaultQBittorrentConfig(t *testing.T) {
+	configHome := filepath.Join(t.TempDir(), "config")
+	t.Setenv("XDG_CONFIG_HOME", configHome)
 	path := filepath.Join(t.TempDir(), "config.toml")
 	if err := os.WriteFile(path, []byte("[qbittorrent]\n"), 0o600); err != nil {
 		t.Fatal(err)
@@ -58,9 +58,9 @@ func TestLoadNamesTheDefaultQBittorrentTheme(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := filepath.Join(dataHome, "qBittorrent", "themes", "Caelestia.qbtheme")
-	if config.QBittorrent.ThemeFile != want {
-		t.Fatalf("theme file = %q, want %q", config.QBittorrent.ThemeFile, want)
+	want := filepath.Join(configHome, "qBittorrent", "qBittorrent.conf")
+	if config.QBittorrent.ConfigFile != want {
+		t.Fatalf("config file = %q, want %q", config.QBittorrent.ConfigFile, want)
 	}
 }
 

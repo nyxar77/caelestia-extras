@@ -64,18 +64,14 @@ type Qt struct {
 
 type QBittorrent struct {
 	Command    string `toml:"command"`
-	RCCCommand string `toml:"rcc_command"`
-	ThemeDir   string `toml:"theme_dir"`
-	ThemeFile  string `toml:"theme_file"`
 	ConfigFile string `toml:"config_file"`
 }
 
 type Portal struct {
-	ThemeDir       string `toml:"theme_dir"`
-	ConfigHome     string `toml:"config_home"`
-	DataHome       string `toml:"data_home"`
-	ThemeName      string `toml:"theme_name"`
-	ApplyGlobalGTK bool   `toml:"apply_global_gtk"`
+	ThemeDir   string `toml:"theme_dir"`
+	ConfigHome string `toml:"config_home"`
+	DataHome   string `toml:"data_home"`
+	ThemeName  string `toml:"theme_name"`
 }
 
 func DefaultPath() string {
@@ -152,15 +148,6 @@ func Load(path string) (Config, error) {
 		if config.QBittorrent.Command == "" {
 			config.QBittorrent.Command = "qbittorrent"
 		}
-		if config.QBittorrent.RCCCommand == "" {
-			config.QBittorrent.RCCCommand = "rcc"
-		}
-		if config.QBittorrent.ThemeDir == "" {
-			config.QBittorrent.ThemeDir = filepath.Join(xdg("XDG_STATE_HOME", ".local/state"), "caelestia", "theme")
-		}
-		if config.QBittorrent.ThemeFile == "" {
-			config.QBittorrent.ThemeFile = filepath.Join(xdg("XDG_DATA_HOME", ".local/share"), "qBittorrent", "themes", "Caelestia.qbtheme")
-		}
 		if config.QBittorrent.ConfigFile == "" {
 			config.QBittorrent.ConfigFile = filepath.Join(xdg("XDG_CONFIG_HOME", ".config"), "qBittorrent", "qBittorrent.conf")
 		}
@@ -233,6 +220,9 @@ func (c Config) Validate() error {
 	}
 	if c.Pavucontrol != nil {
 		enabled++
+		if err := commandAvailable(c.Pavucontrol.Command); err != nil {
+			problems = append(problems, err.Error())
+		}
 	}
 	if c.Qt != nil {
 		enabled++
@@ -244,6 +234,9 @@ func (c Config) Validate() error {
 	}
 	if c.QBittorrent != nil {
 		enabled++
+		if err := commandAvailable(c.QBittorrent.Command); err != nil {
+			problems = append(problems, err.Error())
+		}
 	}
 	if c.Portal != nil {
 		enabled++

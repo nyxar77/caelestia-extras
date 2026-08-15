@@ -32,7 +32,7 @@ programs.caelestia-extras = {
 ```
 
 All integrations are optional. The module installs the package, writes the
-configuration, and creates the user services and path watchers.
+configuration, and creates one user service that coalesces runtime changes.
 
 ### Manual install
 
@@ -46,10 +46,10 @@ config.
 
 It creates `~/.config/caelestia-extras/config.toml` if it does not exist,
 installs the managed templates and units, and places the binary in
-`~/.local/bin`. Configure an integration, then enable the ones you want:
+`~/.local/bin`. Configure the integrations, then enable the unified watcher:
 
 ```sh
-./scripts/install.sh --enable cursor,gtk,hyprtoolkit,portal
+./scripts/install.sh --enable all
 ```
 
 It stages files before applying them, so `Ctrl-C` can safely cancel the build.
@@ -60,9 +60,7 @@ Run the same command after pulling an update. More detail is in the
 ## Quick start
 
 ```sh
-caelestia-extras cursor sync
-caelestia-extras gtk sync
-caelestia-extras portal sync
+caelestia-extras sync
 ```
 
 Check the setup before running an integration:

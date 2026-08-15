@@ -52,9 +52,6 @@
     // lib.optionalAttrs cfg.qbittorrent.enable {
       qbittorrent = {
         command = cfg.qbittorrent.command;
-        rcc_command = cfg.qbittorrent.rccCommand;
-        theme_dir = cfg.qbittorrent.themeDir;
-        theme_file = cfg.qbittorrent.themeFile;
         config_file = cfg.qbittorrent.configFile;
       };
     }
@@ -64,7 +61,6 @@
         config_home = cfg.portal.configHome;
         data_home = cfg.portal.dataHome;
         theme_name = cfg.portal.themeName;
-        apply_global_gtk = cfg.portal.applyGlobalGtk;
       };
     }
   );
@@ -79,7 +75,30 @@
     util-linux
   ] ++ compositorRuntime.${cfg.compositor.backend} ++ lib.optionals cfg.cursor.xcursorFallback [cbmp clickgen];
   gtkRuntime = [pkgs.dconf];
-  command = "${package}/bin/caelestia-extras --config ${config.xdg.configHome}/caelestia-extras/config.toml";
+  watcherRuntime = lib.unique (cursorRuntime ++ gtkRuntime ++ [pkgs.systemd]);
+  runtimePackage = pkgs.symlinkJoin {
+    name = "caelestia-extras-with-runtime";
+    paths = [package];
+    nativeBuildInputs = [pkgs.makeWrapper];
+    postBuild = ''
+      wrapProgram "$out/bin/caelestia-extras" \
+        --prefix PATH : ${lib.makeBinPath watcherRuntime}
+    '';
+  };
+  command = "${runtimePackage}/bin/caelestia-extras --config ${config.xdg.configHome}/caelestia-extras/config.toml";
+  qt6PluginPath = lib.makeSearchPathOutput "lib" "lib/qt-6/plugins" [
+    pkgs.qt6Packages.qt6ct
+    pkgs.kdePackages.breeze
+  ];
+  qbittorrentLauncher = pkgs.writeShellScript "caelestia-qbittorrent" ''
+    export QT_QPA_PLATFORMTHEME=qt6ct
+    export QT_STYLE_OVERRIDE=Breeze
+    export QT_PLUGIN_PATH=${lib.escapeShellArg qt6PluginPath}''${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}
+    ${command} qbittorrent sync || exit $?
+    exec ${lib.escapeShellArg cfg.qbittorrent.command} \
+      ${lib.escapeShellArg "-stylesheet=${../assets/manual/templates/qbittorrent.qss}"} \
+      "$@"
+  '';
 in {
   imports = [
     ./hyprtoolkit.nix
@@ -113,6 +132,11 @@ in {
       enable = lib.mkEnableOption "Caelestia GTK preference sync";
       darkTheme = lib.mkOption { type = lib.types.str; default = "adw-gtk3-dark"; };
       lightTheme = lib.mkOption { type = lib.types.str; default = "adw-gtk3"; };
+      themeDir = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.xdg.stateHome}/caelestia/theme";
+        description = "Directory containing Caelestia's generated GTK colour stylesheet.";
+      };
       directLaunch = lib.mkOption {
         type = lib.types.attrsOf (lib.types.submodule {
           options = {
@@ -186,11 +210,8 @@ in {
       themeName = lib.mkOption { type = lib.types.str; default = "caelestia-breeze"; };
     };
     qbittorrent = {
-      enable = lib.mkEnableOption "Caelestia qBittorrent theme";
+      enable = lib.mkEnableOption "native Breeze integration for qBittorrent";
       command = lib.mkOption { type = lib.types.str; default = "qbittorrent"; };
-      rccCommand = lib.mkOption { type = lib.types.str; default = "${pkgs.qt6Packages.qtbase}/libexec/rcc"; };
-      themeDir = lib.mkOption { type = lib.types.str; default = "${config.xdg.stateHome}/caelestia/theme"; };
-      themeFile = lib.mkOption { type = lib.types.str; default = "${config.xdg.dataHome}/qBittorrent/themes/Caelestia.qbtheme"; };
       configFile = lib.mkOption { type = lib.types.str; default = "${config.xdg.configHome}/qBittorrent/qBittorrent.conf"; };
     };
     portal = {
@@ -220,48 +241,32 @@ in {
         default = "Papirus-Dark";
         description = "Icon theme used by GTK and Qt portal file choosers.";
       };
-      applyGlobalGtk = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-        description = "Write Caelestia's generated GTK stylesheet to GTK 3 and GTK 4. Keep this disabled to leave applications such as Nautilus to their own theme.";
-      };
     };
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [package];
+    home.packages = [runtimePackage];
     xdg.configFile = {
       "caelestia-extras/config.toml".source = configFile;
-    } // lib.optionalAttrs cfg.qt.enable {
+    } // lib.optionalAttrs cfg.gtk.enable {
+      "caelestia/templates/gtk.css".source = ../assets/manual/templates/gtk.css;
+      "gtk-3.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk.css";
+      "gtk-4.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk.css";
+    } // lib.optionalAttrs (cfg.qt.enable || cfg.portal.enable) {
       "caelestia/templates/qt-caelestia.conf".source = ../assets/manual/templates/qt-caelestia.conf;
+    } // lib.optionalAttrs cfg.qt.enable {
       "caelestia/templates/breeze-caelestia.colors".source = ../assets/manual/templates/breeze-caelestia.colors;
+    } // lib.optionalAttrs cfg.pavucontrol.enable {
+      "caelestia/templates/pavucontrol-qt.qss".source = ../assets/manual/templates/pavucontrol-qt.qss;
     } // lib.optionalAttrs cfg.prismlauncher.enable {
-      "caelestia/templates/prismlauncher.json".text = ''
-        {
-          "name": "Caelestia",
-          "widgets": "Breeze",
-          "qssFilePath": "",
-          "colors": {
-            "Window": "#{{ surface.hex }}", "WindowText": "#{{ onSurface.hex }}",
-            "Base": "#{{ surfaceContainerLowest.hex }}", "AlternateBase": "#{{ surfaceContainerLow.hex }}",
-            "ToolTipBase": "#{{ inverseSurface.hex }}", "ToolTipText": "#{{ inverseOnSurface.hex }}",
-            "Text": "#{{ onSurface.hex }}", "Button": "#{{ surfaceContainerHighest.hex }}", "ButtonText": "#{{ onSurface.hex }}",
-            "BrightText": "#{{ error.hex }}", "Link": "#{{ primary.hex }}", "Highlight": "#{{ primary.hex }}", "HighlightedText": "#{{ onPrimary.hex }}",
-            "fadeAmount": 0.14, "fadeColor": "#{{ surface.hex }}"
-          },
-          "logColors": {
-            "Message": "#{{ onSurface.hex }}", "Launcher": "#{{ primary.hex }}", "Debug": "#{{ onSurfaceVariant.hex }}",
-            "Warning": "#{{ tertiary.hex }}", "Error": "#{{ error.hex }}", "Fatal": "#{{ onErrorContainer.hex }}",
-            "MessageHighlight": "#{{ surfaceContainerLow.hex }}", "LauncherHighlight": "#{{ primaryContainer.hex }}",
-            "DebugHighlight": "#{{ surfaceContainer.hex }}", "WarningHighlight": "#{{ tertiaryContainer.hex }}",
-            "ErrorHighlight": "#{{ errorContainer.hex }}", "FatalHighlight": "#{{ errorContainer.hex }}"
-          }
-        }
-      '';
+      "caelestia/templates/prismlauncher.json".source = ../assets/manual/templates/prismlauncher.json;
+      "caelestia/templates/prismlauncher.qss".source = ../assets/manual/templates/qt6ct-caelestia.qss;
     };
     xdg.dataFile = lib.mkIf cfg.prismlauncher.enable {
       "PrismLauncher/themes/${cfg.prismlauncher.themeName}/theme.json".source =
         config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.json";
+      "PrismLauncher/themes/${cfg.prismlauncher.themeName}/themeStyle.css".source =
+        config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.qss";
     };
     xdg.desktopEntries =
       lib.optionalAttrs cfg.gtk.enable (lib.mapAttrs (_: entry: {
@@ -277,139 +282,64 @@ in {
           icon = "multimedia-volume-control";
           categories = ["AudioVideo" "Audio" "Mixer" "Qt"];
         };
+      }
+      // lib.optionalAttrs cfg.qbittorrent.enable {
+        "org.qbittorrent.qBittorrent" = {
+          name = "qBittorrent";
+          genericName = "BitTorrent client";
+          comment = "Download and share files over BitTorrent";
+          exec = "${qbittorrentLauncher} %U";
+          icon = "qbittorrent";
+          categories = ["Network" "FileTransfer" "P2P" "Qt"];
+          mimeType = ["application/x-bittorrent" "x-scheme-handler/magnet"];
+          terminal = false;
+          startupNotify = false;
+          settings = {
+            SingleMainWindow = "true";
+            StartupWMClass = "qbittorrent";
+          };
+        };
       };
-    home.activation.caelestiaExtrasPortal = lib.mkIf cfg.portal.enable (
-      lib.hm.dag.entryAfter ["writeBoundary"] "${command} portal sync"
-    );
-    home.activation.caelestiaExtrasQt = lib.mkIf cfg.qt.enable (
-      lib.hm.dag.entryAfter ["writeBoundary"] "${command} qt sync"
-    );
-    home.activation.caelestiaExtrasHyprtoolkit = lib.mkIf cfg.hyprtoolkit.enable (
-      lib.hm.dag.entryAfter ["writeBoundary"] "${command} hyprtoolkit sync"
-    );
-    home.activation.caelestiaExtrasQBittorrent = lib.mkIf cfg.qbittorrent.enable (
-      lib.hm.dag.entryAfter ["writeBoundary"] "${command} qbittorrent sync"
-    );
-    systemd.user.services = lib.mkMerge [
-      (lib.mkIf cfg.cursor.enable {
-        caelestia-extras-cursor = {
-          Unit = { Description = "Sync cursor with the active Caelestia scheme"; After = ["graphical-session.target"]; };
-          Service = {
-            Type = "oneshot";
-            Environment = "PATH=${lib.makeBinPath cursorRuntime}";
-            ExecStart = "${command} cursor sync";
-          };
-          Install.WantedBy = ["graphical-session.target"];
-        };
-        caelestia-extras-xcursor = {
-          Unit.Description = "Refresh the XCursor fallback for Caelestia";
-          Service = {
-            Type = "oneshot";
-            Environment = "PATH=${lib.makeBinPath cursorRuntime}";
-            ExecStart = "${command} cursor sync-xcursor";
-          };
-        };
-      })
-      (lib.mkIf cfg.gtk.enable {
-        caelestia-extras-gtk = {
-          Unit = { Description = "Sync GTK preferences with the active Caelestia scheme"; After = ["graphical-session.target"]; };
-          Service = {
-            Type = "oneshot";
-            Environment = "PATH=${lib.makeBinPath gtkRuntime}";
-            ExecStart = "${command} gtk sync";
-          };
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-      (lib.mkIf cfg.hyprtoolkit.enable {
-        caelestia-extras-hyprtoolkit = {
-          Unit = { Description = "Sync Hyprtoolkit with Caelestia"; After = ["graphical-session.target"]; };
-          Service = {
-            Type = "oneshot";
-            ExecStart = "${command} hyprtoolkit sync";
-          };
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-      (lib.mkIf cfg.portal.enable {
-        caelestia-extras-portal = {
-          Unit = { Description = "Sync XDG portal theme with Caelestia"; After = ["graphical-session.target"]; };
-          Service = {
-            Type = "oneshot";
-            ExecStart = "${command} portal sync";
-          };
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-      (lib.mkIf cfg.qt.enable {
-        caelestia-extras-qt = {
-          Unit = { Description = "Sync shared Qt theme with Caelestia"; After = ["graphical-session.target"]; };
-          Service = {
-            Type = "oneshot";
-            ExecStart = "${command} qt sync";
-          };
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-      (lib.mkIf cfg.qbittorrent.enable {
-        caelestia-extras-qbittorrent = {
-          Unit = { Description = "Sync qBittorrent with Caelestia"; After = ["graphical-session.target"]; };
-          Service = {
-            Type = "oneshot";
-            ExecStart = "${command} qbittorrent sync";
-          };
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-    ];
-    systemd.user.paths = lib.mkMerge [
-      (lib.mkIf cfg.cursor.enable {
-        caelestia-extras-cursor = {
-          Path.PathChanged = cfg.schemeFile;
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-      (lib.mkIf cfg.gtk.enable {
-        caelestia-extras-gtk = {
-          Path.PathChanged = cfg.schemeFile;
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-      (lib.mkIf cfg.hyprtoolkit.enable {
-        caelestia-extras-hyprtoolkit = {
-          Path.PathChanged = "${cfg.hyprtoolkit.themeDir}/hyprtoolkit.conf";
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-      (lib.mkIf cfg.portal.enable {
-        caelestia-extras-portal = {
-          Path.PathChanged = [
-            "${cfg.portal.themeDir}/gtk-portal.css"
-            "${cfg.portal.themeDir}/gtk-global.css"
-            "${cfg.portal.themeDir}/qt6ct-caelestia.conf"
-            "${cfg.portal.themeDir}/qt6ct-portal.qss"
-          ];
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-      (lib.mkIf cfg.qt.enable {
-        caelestia-extras-qt = {
-          Path.PathChanged = [
-            "${cfg.qt.themeDir}/qt-caelestia.conf"
-            "${cfg.qt.themeDir}/breeze-caelestia.colors"
-          ];
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-      (lib.mkIf cfg.qbittorrent.enable {
-        caelestia-extras-qbittorrent = {
-          Path.PathChanged = [
-            "${cfg.qbittorrent.themeDir}/qbittorrent.qss"
-            "${cfg.qbittorrent.themeDir}/qbittorrent.json"
-          ];
-          Install.WantedBy = ["graphical-session.target"];
-        };
-      })
-    ];
+    home.activation.caelestiaExtrasRetirePathUnits = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+        ${pkgs.systemd}/bin/systemctl --user disable --now \
+          caelestia-extras-cursor.path \
+          caelestia-extras-gtk.path \
+          caelestia-extras-hyprtoolkit.path \
+          caelestia-extras-portal.path \
+          caelestia-extras-qt.path \
+          caelestia-extras-qbittorrent.path >/dev/null 2>&1 || true
+        ${pkgs.systemd}/bin/systemctl --user stop caelestia-extras-xcursor.service >/dev/null 2>&1 || true
+        ${pkgs.systemd}/bin/systemctl --user reset-failed \
+          caelestia-extras-cursor.path caelestia-extras-cursor.service \
+          caelestia-extras-gtk.path caelestia-extras-gtk.service \
+          caelestia-extras-hyprtoolkit.path caelestia-extras-hyprtoolkit.service \
+          caelestia-extras-portal.path caelestia-extras-portal.service \
+          caelestia-extras-qt.path caelestia-extras-qt.service \
+          caelestia-extras-qbittorrent.path caelestia-extras-qbittorrent.service \
+          caelestia-extras-xcursor.service >/dev/null 2>&1 || true
+      fi
+    '';
+    home.activation.caelestiaExtrasSync = lib.hm.dag.entryAfter ["caelestiaExtrasRetirePathUnits"] ''
+      if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+        PATH=${lib.makeBinPath watcherRuntime} ${command} sync
+      fi
+    '';
+    systemd.user.services.caelestia-extras-watch = {
+      Unit = {
+        Description = "Keep desktop integrations synced with Caelestia";
+        After = ["graphical-session.target"];
+        PartOf = ["graphical-session.target"];
+        StartLimitIntervalSec = 0;
+      };
+      Service = {
+        Type = "simple";
+        Environment = "PATH=${lib.makeBinPath watcherRuntime}";
+        ExecStart = "${command} watch";
+        Restart = "on-failure";
+        RestartSec = 1;
+      };
+      Install.WantedBy = ["graphical-session.target"];
+    };
   };
 }

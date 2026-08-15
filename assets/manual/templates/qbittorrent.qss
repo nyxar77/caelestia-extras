@@ -1,15 +1,31 @@
-QWidget { background-color: #{{ surface.hex }}; color: #{{ onSurface.hex }}; }
-QMainWindow, QDialog, QFrame, QScrollArea { background-color: #{{ surface.hex }}; }
-QToolBar, QStatusBar, QMenuBar { background-color: #{{ surfaceContainerLow.hex }}; border: 0; border-bottom: 1px solid #{{ outlineVariant.hex }}; }
-QTabWidget::pane { background-color: #{{ surface.hex }}; border: 1px solid #{{ outlineVariant.hex }}; }
-QTabBar::tab { padding: 7px 14px; color: #{{ onSurfaceVariant.hex }}; background-color: #{{ surfaceContainerLow.hex }}; border: 0; border-bottom: 3px solid transparent; }
-QTabBar::tab:hover { color: #{{ onSurface.hex }}; background-color: #{{ surfaceContainer.hex }}; border-bottom-color: #{{ tertiary.hex }}; }
-QTabBar::tab:selected { color: #{{ onSurface.hex }}; background-color: #{{ surfaceContainerHigh.hex }}; border-bottom-color: #{{ primary.hex }}; }
-QPushButton, QToolButton, QComboBox, QLineEdit { min-height: 30px; padding: 4px 10px; background-color: #{{ surfaceContainer.hex }}; border: 1px solid #{{ outlineVariant.hex }}; border-radius: 7px; }
-QPushButton:hover, QToolButton:hover, QComboBox:hover, QLineEdit:focus { border-color: #{{ primary.hex }}; background-color: #{{ surfaceContainerHigh.hex }}; }
-QHeaderView::section { padding: 6px 10px; background-color: #{{ surfaceContainerLow.hex }}; color: #{{ onSurface.hex }}; border: 0; border-right: 1px solid #{{ outlineVariant.hex }}; border-bottom: 1px solid #{{ outlineVariant.hex }}; }
-QTreeView::item { padding: 5px; border: 0; }
-QTreeView::item:hover { background-color: #{{ surfaceContainer.hex }}; }
-QTreeView::item:selected { background-color: #{{ primaryContainer.hex }}; color: #{{ onPrimaryContainer.hex }}; }
-QProgressBar { border: 1px solid #{{ outlineVariant.hex }}; border-radius: 5px; background-color: #{{ surfaceContainerHigh.hex }}; text-align: center; }
-QProgressBar::chunk { background-color: #{{ primary.hex }}; border-radius: 4px; }
+/*
+  qBittorrent top-bar compatibility shim.
+
+  Breeze draws these controls, and the shared Qt palette remains the source of
+  every colour. Explicit semantic roles keep qBittorrent's menu and toolbar
+  readable in both active and inactive windows without enabling its custom
+  theme engine or styling the rest of the application.
+*/
+QMenuBar,
+QToolBar {
+  color: palette(window-text);
+  background-color: palette(window);
+  border-bottom: 1px solid palette(mid);
+}
+
+QMenuBar::item,
+QToolBar QToolButton {
+  color: palette(button-text);
+  background-color: transparent;
+}
+
+QMenuBar::item:selected,
+QToolBar QToolButton:hover,
+QToolBar QToolButton:checked {
+  color: palette(highlighted-text);
+  background-color: palette(highlight);
+}
+
+QToolBar QToolButton:disabled {
+  color: palette(mid);
+}

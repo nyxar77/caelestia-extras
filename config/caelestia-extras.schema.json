@@ -83,9 +83,6 @@
       "additionalProperties": false,
       "properties": {
         "command": {"type": "string", "default": "qbittorrent"},
-        "rcc_command": {"type": "string", "default": "rcc"},
-        "theme_dir": {"type": "string", "description": "Directory containing generated qBittorrent theme files."},
-        "theme_file": {"type": "string", "description": "Generated qBittorrent theme bundle. Defaults to $XDG_DATA_HOME/qBittorrent/themes/Caelestia.qbtheme."},
         "config_file": {"type": "string", "description": "qBittorrent configuration file."}
       }
     },
@@ -96,8 +93,7 @@
         "theme_dir": {"type": "string", "description": "Directory containing generated portal theme files."},
         "config_home": {"type": "string"},
         "data_home": {"type": "string"},
-        "theme_name": {"type": "string", "default": "Caelestia-Portal"},
-        "apply_global_gtk": {"type": "boolean", "default": false}
+        "theme_name": {"type": "string", "default": "Caelestia-Portal"}
       }
     }
   }

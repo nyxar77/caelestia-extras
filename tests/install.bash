@@ -59,11 +59,16 @@ config_file="$test_dir/config/caelestia-extras/config.toml"
 test -x "$test_dir/bin/caelestia-extras"
 test -f "$config_file"
 test -L "$test_dir/config/caelestia/templates/gtk-portal.css"
-grep -qx '  "qssFilePath": "",' "$test_dir/config/caelestia/templates/prismlauncher.json"
+test -L "$test_dir/config/gtk-3.0/gtk.css"
+test -L "$test_dir/config/gtk-4.0/gtk.css"
+test "$(readlink "$test_dir/config/gtk-4.0/gtk.css")" = "$test_dir/state/caelestia/theme/gtk.css"
+grep -qx '  "qssFilePath": "themeStyle.css",' "$test_dir/config/caelestia/templates/prismlauncher.json"
+test -L "$test_dir/config/caelestia/templates/prismlauncher.qss"
 test -L "$test_dir/config/caelestia/templates/breeze-caelestia.colors"
-test -L "$test_dir/config/systemd/user/caelestia-extras-gtk.path"
+test -L "$test_dir/config/systemd/user/caelestia-extras-watch.service"
 test -L "$test_dir/data/themes/Caelestia-Portal/gtk-4.0/base-dark.css"
 test -L "$test_dir/data/PrismLauncher/themes/caelestia-breeze/theme.json"
+test -L "$test_dir/data/PrismLauncher/themes/caelestia-breeze/themeStyle.css"
 
 if TEST_INTERRUPT_GO=1 \
   HOME="$test_dir/cancel/home" \
@@ -89,23 +94,18 @@ printf '%s\n' '/* user-owned */' > "$portal_template"
 run_install update
 grep -qx '/\* user-owned \*/' "$portal_template"
 
-run_install update --enable gtk
+run_install update --enable all
 grep -qx -- '--user daemon-reload' "$test_dir/systemctl.log"
-grep -qx -- '--user enable --now caelestia-extras-gtk.path' "$test_dir/systemctl.log"
-grep -qx -- '--user start caelestia-extras-gtk.service' "$test_dir/systemctl.log"
-grep -Fqx "ExecStart=\"$test_dir/bin/caelestia-extras\" --config \"$config_file\" gtk sync" "$test_dir/config/caelestia-extras/managed/systemd/caelestia-extras-gtk.service"
-
-run_install update --enable qt
-grep -qx -- '--user enable --now caelestia-extras-qt.path' "$test_dir/systemctl.log"
-grep -qx -- '--user start caelestia-extras-qt.service' "$test_dir/systemctl.log"
+grep -qx -- '--user enable --now caelestia-extras-watch.service' "$test_dir/systemctl.log"
+grep -Fqx "ExecStart=\"$test_dir/bin/caelestia-extras\" --config \"$config_file\" watch" "$test_dir/config/caelestia-extras/managed/systemd/caelestia-extras-watch.service"
 test -L "$test_dir/config/environment.d/10-caelestia-qt.conf"
-grep -Fqx "PathChanged=$test_dir/state/caelestia/theme/breeze-caelestia.colors" "$test_dir/config/caelestia-extras/managed/systemd/caelestia-extras-qt.path"
+test ! -e "$test_dir/config/systemd/user/caelestia-extras-gtk.path"
+test ! -e "$test_dir/config/systemd/user/caelestia-extras-qt.path"
 
 export CAELESTIA_EXTRAS_SCHEME_FILE="$test_dir/custom/scheme.json"
 export CAELESTIA_EXTRAS_THEME_DIR="$test_dir/custom/theme"
 export CAELESTIA_EXTRAS_PORTAL_THEME_NAME="Manual-Portal"
 run_install update
-grep -Fqx "PathChanged=$test_dir/custom/scheme.json" "$test_dir/config/caelestia-extras/managed/systemd/caelestia-extras-gtk.path"
-grep -Fqx "PathChanged=$test_dir/custom/theme/gtk-portal.css" "$test_dir/config/caelestia-extras/managed/systemd/caelestia-extras-portal.path"
+grep -Fqx "ExecStart=\"$test_dir/bin/caelestia-extras\" --config \"$config_file\" watch" "$test_dir/config/caelestia-extras/managed/systemd/caelestia-extras-watch.service"
 grep -Fqx "Environment=GTK_THEME=Manual-Portal" "$test_dir/config/caelestia-extras/managed/systemd/xdg-desktop-portal-gtk.service.d/10-caelestia-theme.conf"
 test -L "$test_dir/data/themes/Manual-Portal/gtk-3.0/base-dark.css"
