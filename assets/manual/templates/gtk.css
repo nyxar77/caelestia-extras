@@ -49,3 +49,27 @@
 @define-color shade_color alpha(#{{ outlineVariant.hex }}, 0.40);
 @define-color scrollbar_outline_color alpha(#{{ outlineVariant.hex }}, 0.80);
 @define-color borders #{{ outlineVariant.hex }};
+
+/* GTK 3 / Adwaita compatibility names used by traditional GTK widgets. */
+@define-color theme_bg_color @window_bg_color;
+@define-color theme_fg_color @window_fg_color;
+@define-color theme_base_color @view_bg_color;
+@define-color theme_text_color @view_fg_color;
+@define-color theme_selected_bg_color @accent_bg_color;
+@define-color theme_selected_fg_color @accent_fg_color;
+@define-color insensitive_bg_color #{{ surfaceContainer.hex }};
+@define-color insensitive_fg_color #{{ onSurfaceVariant.hex }};
+@define-color insensitive_base_color @view_bg_color;
+@define-color theme_unfocused_bg_color @window_bg_color;
+@define-color theme_unfocused_fg_color #{{ onSurfaceVariant.hex }};
+@define-color theme_unfocused_base_color @view_bg_color;
+@define-color theme_unfocused_text_color #{{ onSurfaceVariant.hex }};
+@define-color theme_unfocused_selected_bg_color @accent_bg_color;
+@define-color theme_unfocused_selected_fg_color @accent_fg_color;
+@define-color unfocused_insensitive_color #{{ onSurfaceVariant.hex }};
+@define-color unfocused_borders #{{ outlineVariant.hex }};
+
+@define-color success_color #{{ primary.hex }};
+@define-color warning_color #{{ tertiary.hex }};
+@define-color link_color #{{ primary.hex }};
+@define-color link_visited_color #{{ secondary.hex }};

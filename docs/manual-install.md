@@ -36,6 +36,10 @@ The GTK 3 and GTK 4 user stylesheets are symlinked directly to Caelestia's
 generated `gtk.css` and `gtk4.css`, respectively. Existing user stylesheets are
 preserved instead of being overwritten.
 
+The installer also exposes the generated `Caelestia-GTK3` named theme for GTK
+3 applications whose stock theme does not consume compatibility colour names.
+It imports Adwaita and changes colour properties only.
+
 The build and file rendering happen in a temporary directory first. Press
 `Ctrl-C` before the brief apply step to cancel without changing installed files.
 Once that step starts, interruption is ignored so the managed set is not left

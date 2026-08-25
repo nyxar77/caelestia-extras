@@ -72,6 +72,10 @@ separate prevents GTK 3 from parsing GTK 4-only CSS variables. Both stylesheets
 change only colour tokens; the toolkit still owns widget layout and interaction
 states.
 
+They also install the generated `Caelestia-GTK3` named theme. It uses stock
+Adwaita as its base and is intended for GTK 3 applications that do not consume
+the global compatibility colour names.
+
 ### `[hyprtoolkit]`
 
 - `theme_dir` — generated theme directory. Default:
@@ -86,6 +90,16 @@ states.
 Enabling this integration does not install the application. Validation and the
 launcher report a missing command as an error instead of silently doing
 nothing.
+
+### LocalSend (Home Manager only)
+
+- `programs.caelestia-extras.localsend.enable` — install LocalSend with its
+  Linux GTK host window scoped to the generated `Caelestia-GTK3` theme.
+- `programs.caelestia-extras.localsend.package` — LocalSend package to wrap.
+  Default: `pkgs.localsend`.
+
+LocalSend's Flutter content keeps using its own system colour mode. The wrapper
+only themes the native Linux title bar and requires the GTK integration.
 
 ### `[qt]`
 

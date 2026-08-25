@@ -171,7 +171,7 @@ else
   create_config=false
 fi
 
-for template in gtk-portal.css gtk.css gtk4.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
+for template in gtk-portal.css gtk.css gtk4.css gtk3-adwaita.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
   stage_managed \
     "$repo_dir/assets/manual/templates/$template" \
     "templates/$template"
@@ -224,7 +224,7 @@ else
   printf 'keeping user config: %s\n' "$config_file"
 fi
 
-for template in gtk-portal.css gtk.css gtk4.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
+for template in gtk-portal.css gtk.css gtk4.css gtk3-adwaita.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
   commit_managed \
     "templates/$template" \
     "$config_home/caelestia/templates/$template"
@@ -236,6 +236,15 @@ relink_managed \
   "$theme_dir/gtk4.css" \
   "$theme_dir/gtk.css" \
   "$config_home/gtk-4.0/gtk.css"
+link_managed \
+  "$theme_dir/gtk3-adwaita.css" \
+  "$data_home/themes/Caelestia-GTK3/gtk-3.0/gtk.css"
+commit_managed \
+  "theme/gtk-3.0/base-dark.css" \
+  "$data_home/themes/Caelestia-GTK3/gtk-3.0/base-dark.css"
+commit_managed \
+  "theme/gtk-3.0/base-light.css" \
+  "$data_home/themes/Caelestia-GTK3/gtk-3.0/base-light.css"
 commit_managed \
   "templates/prismlauncher.qss" \
   "$config_home/caelestia/templates/prismlauncher.qss"

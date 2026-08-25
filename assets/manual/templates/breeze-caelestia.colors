@@ -1,3 +1,23 @@
+[ColorEffects:Disabled]
+Color=56,56,56
+ColorAmount=0
+ColorEffect=0
+ContrastAmount=0.65
+ContrastEffect=1
+IntensityAmount=0.1
+IntensityEffect=2
+
+[ColorEffects:Inactive]
+ChangeSelectionColor=true
+Color=112,111,110
+ColorAmount=0.025
+ColorEffect=2
+ContrastAmount=0.1
+ContrastEffect=2
+Enable=false
+IntensityAmount=0
+IntensityEffect=0
+
 [Colors:Button]
 BackgroundAlternate=#{{ surfaceContainerHigh.hex }}
 BackgroundNormal=#{{ surfaceContainer.hex }}
@@ -37,6 +57,20 @@ ForegroundLink=#{{ primary.hex }}
 ForegroundNegative=#{{ error.hex }}
 ForegroundNeutral=#{{ tertiary.hex }}
 ForegroundNormal=#{{ onSurface.hex }}
+ForegroundPositive=#{{ primary.hex }}
+ForegroundVisited=#{{ secondary.hex }}
+
+[Colors:Header][Inactive]
+BackgroundAlternate=#{{ surfaceContainer.hex }}
+BackgroundNormal=#{{ surfaceContainerLow.hex }}
+DecorationFocus=#{{ primary.hex }}
+DecorationHover=#{{ primary.hex }}
+ForegroundActive=#{{ primary.hex }}
+ForegroundInactive=#{{ onSurfaceVariant.hex }}
+ForegroundLink=#{{ primary.hex }}
+ForegroundNegative=#{{ error.hex }}
+ForegroundNeutral=#{{ tertiary.hex }}
+ForegroundNormal=#{{ onSurfaceVariant.hex }}
 ForegroundPositive=#{{ primary.hex }}
 ForegroundVisited=#{{ secondary.hex }}
 
@@ -103,3 +137,11 @@ shadeSortColumn=true
 
 [KDE]
 contrast=4
+
+[WM]
+activeBackground=#{{ surfaceContainer.hex }}
+activeBlend=#{{ onSurface.hex }}
+activeForeground=#{{ onSurface.hex }}
+inactiveBackground=#{{ surfaceContainerLow.hex }}
+inactiveBlend=#{{ onSurfaceVariant.hex }}
+inactiveForeground=#{{ onSurfaceVariant.hex }}

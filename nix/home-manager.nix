@@ -99,6 +99,15 @@
       ${lib.escapeShellArg "-stylesheet=${../assets/manual/templates/qbittorrent.qss}"} \
       "$@"
   '';
+  localsendPackage = pkgs.symlinkJoin {
+    name = "localsend-caelestia";
+    paths = [cfg.localsend.package];
+    nativeBuildInputs = [pkgs.makeWrapper];
+    postBuild = ''
+      wrapProgram "$out/bin/localsend_app" \
+        --set GTK_THEME ${lib.escapeShellArg cfg.gtk.gtk3ThemeName}
+    '';
+  };
 in {
   imports = [
     ./hyprtoolkit.nix
@@ -136,6 +145,11 @@ in {
         type = lib.types.str;
         default = "${config.xdg.stateHome}/caelestia/theme";
         description = "Directory containing Caelestia's generated GTK colour stylesheet.";
+      };
+      gtk3ThemeName = lib.mkOption {
+        type = lib.types.str;
+        default = "Caelestia-GTK3";
+        description = "Named stock-Adwaita GTK 3 theme with Caelestia-generated colours.";
       };
       directLaunch = lib.mkOption {
         type = lib.types.attrsOf (lib.types.submodule {
@@ -176,6 +190,15 @@ in {
     pavucontrol = {
       enable = lib.mkEnableOption "Caelestia-themed pavucontrol-qt launcher";
       command = lib.mkOption { type = lib.types.str; default = "pavucontrol-qt"; };
+    };
+    localsend = {
+      enable = lib.mkEnableOption "Caelestia-themed GTK host window for LocalSend";
+      package = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.localsend;
+        defaultText = lib.literalExpression "pkgs.localsend";
+        description = "LocalSend package wrapped with the named Caelestia GTK 3 theme.";
+      };
     };
     qt = {
       enable = lib.mkEnableOption "shared Caelestia Qt theming";
@@ -245,12 +268,19 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [runtimePackage];
+    assertions = [
+      {
+        assertion = !cfg.localsend.enable || cfg.gtk.enable;
+        message = "programs.caelestia-extras.localsend requires programs.caelestia-extras.gtk";
+      }
+    ];
+    home.packages = [runtimePackage] ++ lib.optional cfg.localsend.enable localsendPackage;
     xdg.configFile = {
       "caelestia-extras/config.toml".source = configFile;
     } // lib.optionalAttrs cfg.gtk.enable {
       "caelestia/templates/gtk.css".source = ../assets/manual/templates/gtk.css;
       "caelestia/templates/gtk4.css".source = ../assets/manual/templates/gtk4.css;
+      "caelestia/templates/gtk3-adwaita.css".source = ../assets/manual/templates/gtk3-adwaita.css;
       "gtk-3.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk.css";
       "gtk-4.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk4.css";
     } // lib.optionalAttrs (cfg.qt.enable || cfg.portal.enable) {
@@ -263,7 +293,12 @@ in {
       "caelestia/templates/prismlauncher.json".source = ../assets/manual/templates/prismlauncher.json;
       "caelestia/templates/prismlauncher.qss".source = ../assets/manual/templates/qt6ct-caelestia.qss;
     };
-    xdg.dataFile = lib.mkIf cfg.prismlauncher.enable {
+    xdg.dataFile = lib.optionalAttrs cfg.gtk.enable {
+      "themes/${cfg.gtk.gtk3ThemeName}/gtk-3.0/gtk.css".source =
+        config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk3-adwaita.css";
+      "themes/${cfg.gtk.gtk3ThemeName}/gtk-3.0/base-dark.css".source = ../assets/manual/theme/base-dark.css;
+      "themes/${cfg.gtk.gtk3ThemeName}/gtk-3.0/base-light.css".source = ../assets/manual/theme/base-light.css;
+    } // lib.optionalAttrs cfg.prismlauncher.enable {
       "PrismLauncher/themes/${cfg.prismlauncher.themeName}/theme.json".source =
         config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.json";
       "PrismLauncher/themes/${cfg.prismlauncher.themeName}/themeStyle.css".source =

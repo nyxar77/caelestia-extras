@@ -28,6 +28,12 @@ Caelestia's generated `gtk.css` to GTK 3 and `gtk4.css` to GTK 4. Those
 stylesheets define the public GTK/libadwaita colour tokens only: no global
 `button`, `entry`, `window`, or geometry selectors are used.
 
+GTK 3's built-in Adwaita theme does not use those compatibility names as
+palette inputs. The module therefore also exposes `Caelestia-GTK3`, a named
+theme for applications that need it. It imports stock Adwaita and overrides
+colour properties only; Adwaita still owns geometry, spacing, and widget
+structure. Select it for an application with `GTK_THEME=Caelestia-GTK3`.
+
 This is intentionally global at the palette boundary. App-specific styling is
 reserved for an application that cannot consume the toolkit tokens correctly.
 Already-running GTK processes may need to be reopened after a palette change;
@@ -42,6 +48,14 @@ active Hyprtoolkit config path.
 
 `pavucontrol` launches the configured `pavucontrol-qt` command. If Caelestia
 generated a stylesheet, it is passed to the application.
+
+## LocalSend
+
+LocalSend draws its main interface with Flutter but uses GTK for the native
+Linux host window. Its system colour mode already follows the detected desktop
+accent. The Home Manager integration keeps that application-owned interface and
+wraps only `localsend_app` with the generated `Caelestia-GTK3` named theme, so
+the title bar follows Caelestia without enabling a global GTK theme override.
 
 ## qBittorrent
 
