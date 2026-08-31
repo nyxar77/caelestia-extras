@@ -472,6 +472,8 @@ _caelestia_extras() {
     COMPREPLY=($(compgen -W "sync watch cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion help version" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == cursor ]]; then
     COMPREPLY=($(compgen -W "sync sync-xcursor" -- "$cur"))
+  elif [[ $COMP_CWORD == 2 && " gtk hyprtoolkit qt qbittorrent portal " == *" $command "* ]]; then
+    COMPREPLY=($(compgen -W "sync" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == completion ]]; then
     COMPREPLY=($(compgen -W "bash zsh fish" -- "$cur"))
   elif [[ $COMP_CWORD == 2 && $command == help ]]; then
@@ -491,7 +493,7 @@ _arguments \
 
 case $words[2] in
   cursor) _arguments '1:action:(sync sync-xcursor)' ;;
-  qt|qbittorrent) _arguments '1:action:(sync)' ;;
+  gtk|hyprtoolkit|qt|qbittorrent|portal) _arguments '1:action:(sync)' ;;
   completion) _arguments '1:shell:(bash zsh fish)' ;;
   help) _arguments '1:command:(sync watch cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion)' ;;
   config) _arguments '1:action:(validate)' ;;
@@ -502,9 +504,8 @@ const fishCompletion = `complete -c caelestia-extras -f -n '__fish_use_subcomman
 complete -c caelestia-extras -l config -r -d 'configuration file'
 complete -c caelestia-extras -l version -d 'show version'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from cursor' -a 'sync sync-xcursor'
-complete -c caelestia-extras -n '__fish_seen_subcommand_from qt' -a 'sync'
-complete -c caelestia-extras -n '__fish_seen_subcommand_from qbittorrent' -a 'sync'
+complete -c caelestia-extras -n '__fish_seen_subcommand_from gtk hyprtoolkit qt qbittorrent portal' -a 'sync'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from completion' -a 'bash zsh fish'
-complete -c caelestia-extras -n '__fish_seen_subcommand_from help' -a 'sync watch cursor gtk hyprtoolkit pavucontrol qbittorrent portal config completion'
+complete -c caelestia-extras -n '__fish_seen_subcommand_from help' -a 'sync watch cursor gtk hyprtoolkit pavucontrol qt qbittorrent portal config completion'
 complete -c caelestia-extras -n '__fish_seen_subcommand_from config' -a 'validate'
 `

@@ -67,6 +67,25 @@ func TestExecuteWritesCompletion(t *testing.T) {
 	}
 }
 
+func TestCompletionsIncludeEverySyncSubcommand(t *testing.T) {
+	tests := map[string]string{
+		"bash": `" gtk hyprtoolkit qt qbittorrent portal "`,
+		"zsh":  "gtk|hyprtoolkit|qt|qbittorrent|portal",
+		"fish": "__fish_seen_subcommand_from gtk hyprtoolkit qt qbittorrent portal",
+	}
+	for shell, expected := range tests {
+		t.Run(shell, func(t *testing.T) {
+			var output bytes.Buffer
+			if err := execute([]string{"completion", shell}, &output, &output); err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(output.String(), expected) {
+				t.Fatalf("%s completion does not cover every sync command", shell)
+			}
+		})
+	}
+}
+
 func TestExecuteRejectsUnknownCompletionShell(t *testing.T) {
 	err := execute([]string{"completion", "powershell"}, &bytes.Buffer{}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "unsupported shell") {
