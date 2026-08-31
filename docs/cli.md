@@ -29,6 +29,11 @@ success when output is a terminal. Redirected output and `NO_COLOR` remain
 plain text. A successful validation ends with `Configuration is valid` and the
 path that was checked.
 
+Commands exit with status `0` on success and `1` for invalid usage,
+configuration errors, or failed integration work. Watcher sync failures are
+reported as warnings and retried after a later file change; watcher setup
+failures stop the process so systemd can restart it.
+
 Use `--help` or `help <command>` for details:
 
 ```sh
@@ -53,8 +58,17 @@ The program prints a completion script. The shell loads it and handles Tab.
 source <(caelestia-extras completion bash)
 
 # Zsh
+mkdir -p ~/.zfunc
 caelestia-extras completion zsh > ~/.zfunc/_caelestia-extras
 
 # Fish
 caelestia-extras completion fish | source
+```
+
+For Zsh, add `~/.zfunc` to `fpath` before `compinit` in `.zshrc` if it is not
+already there:
+
+```zsh
+fpath=(~/.zfunc $fpath)
+autoload -Uz compinit && compinit
 ```

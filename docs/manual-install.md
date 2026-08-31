@@ -14,6 +14,7 @@ use:
 - pavucontrol: `pavucontrol-qt`
 - Shared Qt theme: `qt5ct`, `qt6ct`, and Breeze for Qt 6
 - qBittorrent: `qbittorrent`
+- Portal sync and the watcher: a systemd user session with `systemctl`
 
 ## Install or update
 
@@ -36,14 +37,19 @@ The GTK 3 and GTK 4 user stylesheets are symlinked directly to Caelestia's
 generated `gtk.css` and `gtk4.css`, respectively. Existing user stylesheets are
 preserved instead of being overwritten.
 
+Caelestia CLI can also write those two user stylesheets. If you enable the GTK
+integration here, set `theme.enableGtk` to `false` in Caelestia's CLI settings
+so it keeps rendering Extras' templates without replacing the installed
+symlinks.
+
 The installer also exposes the generated `Caelestia-GTK3` named theme for GTK
 3 applications whose stock theme does not consume compatibility colour names.
 It imports Adwaita and changes colour properties only.
 
 The build and file rendering happen in a temporary directory first. Press
-`Ctrl-C` before the brief apply step to cancel without changing installed files.
-Once that step starts, interruption is ignored so the managed set is not left
-half-applied.
+`Ctrl-C` before the brief apply step to cancel without changing installed
+files. Interruption is ignored only while the staged files are copied into
+place, then restored before service management and the initial sync.
 
 Run the same command after updating the checkout:
 

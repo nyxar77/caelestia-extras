@@ -39,6 +39,12 @@ reserved for an application that cannot consume the toolkit tokens correctly.
 Already-running GTK processes may need to be reopened after a palette change;
 new processes read the generated stylesheet directly.
 
+Caelestia CLI also has a built-in GTK writer. Do not enable both owners: when
+using Caelestia's Home Manager module, set
+`programs.caelestia.cli.settings.theme.enableGtk = false` before enabling the
+GTK integration here. Caelestia continues to render the templates installed by
+Extras into its state directory.
+
 ## Hyprtoolkit
 
 `hyprtoolkit sync` copies the generated Caelestia Hyprtoolkit config to the
@@ -100,12 +106,15 @@ global colour-token layer.
 
 ## Home Manager and systemd
 
-The Home Manager module creates one long-running watcher and runs an aggregate
-sync during activation. A 300 ms trailing-edge delay lets Caelestia finish all
-generated files before they are copied. Buffered worker channels retain the
-newest pending update without launching overlapping processes, and XCursor is
-generated only after ten seconds without another change. Starting the watcher
-does not rebuild XCursor by itself; activation's aggregate sync initializes it.
+By default, the Home Manager module runs an aggregate sync during activation
+and creates one long-running watcher when at least one enabled integration has
+generated files to watch. `syncOnActivation` and `systemd.enable` control those
+two actions independently. A 300 ms trailing-edge delay lets Caelestia finish
+all generated files before they are copied. Buffered worker channels retain
+the newest pending update without launching overlapping processes, and XCursor
+is generated only after ten seconds without another change. Starting the
+watcher does not rebuild XCursor by itself; activation's aggregate sync
+initializes it when that hook is enabled.
 
 For a manual install, run `scripts/install.sh`. It renders the units with the
 right binary and XDG paths, then manages them through symlinks. Do not copy the

@@ -39,9 +39,26 @@ theme_name = "Caelestia-Portal"
 
 The `scheme.file` setting defaults to `$XDG_STATE_HOME/caelestia/scheme.json`.
 An integration is enabled by adding its section. Empty sections use the
-defaults below.
+defaults below. Unknown sections and keys are rejected so a misspelling cannot
+silently disable part of the configuration.
 
 ## Options
+
+### `[compositor]`
+
+- `backend` — compositor-specific backend. Default: `hyprland`.
+
+Only the cursor integration uses the compositor backend. Keep it explicit in
+service configurations; a systemd user service may not receive enough session
+state for reliable compositor detection.
+
+### `[scheme]`
+
+- `file` — Caelestia's active scheme JSON. Default:
+  `$XDG_STATE_HOME/caelestia/scheme.json`.
+
+Cursor and GTK sync require this file. The remaining integrations consume
+Caelestia's rendered template files from their `theme_dir`.
 
 ### `[cursor]`
 
@@ -53,13 +70,6 @@ defaults below.
 - `xcursor_sizes` — XCursor sizes. Default: `[20, 24, 32]`.
 - `xcursor_fallback` — refresh the XCursor fallback. Default: `false`.
 - `update_gtk` — update the GTK cursor setting. Default: `false`.
-
-### `[compositor]`
-
-- `backend` — compositor-specific backend. Default: `hyprland`.
-
-Keep this explicit. User services do not always receive enough session state
-to detect the compositor reliably.
 
 ### `[gtk]`
 
@@ -126,6 +136,9 @@ so qBittorrent cannot restore a stale custom-theme setting on shutdown. It also
 loads a top-bar-only stylesheet that references Qt palette roles; the shared
 Breeze palette still owns all actual colours.
 
+The preferences file must be writable and must not be a symlink. Sync preserves
+the permissions of an existing regular file and refuses to replace a symlink.
+
 ### `[portal]`
 
 - `theme_dir` — generated portal theme directory. Default:
@@ -133,6 +146,11 @@ Breeze palette still owns all actual colours.
 - `config_home` — XDG config directory. Default: `$XDG_CONFIG_HOME`.
 - `data_home` — XDG data directory. Default: `$XDG_DATA_HOME`.
 - `theme_name` — private GTK theme name. Default: `Caelestia-Portal`.
+
+An aggregate `sync` restarts the GTK and Hyprland portal user services after
+copying the generated files. `config validate` therefore requires `systemctl`
+when this section is enabled. The direct `portal sync` command only copies the
+files.
 
 ## Validation and editor support
 
@@ -143,7 +161,8 @@ caelestia-extras config validate
 ```
 
 It checks the files and commands needed by the enabled integrations. It does
-not require generated theme output to exist yet.
+not require generated theme output to exist yet. Validation checks the runtime
+TOML, not only the editor schema.
 
 The repository includes [`../config/caelestia-extras.schema.json`](../config/caelestia-extras.schema.json).
 Associate it with this TOML file in your TOML language server for key
