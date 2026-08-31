@@ -37,6 +37,9 @@ cat > "$fake_bin/systemctl" <<'EOF'
 set -eu
 
 printf '%s\n' "$*" >> "$TEST_SYSTEMCTL_LOG"
+if [ "${TEST_INTERRUPT_SYSTEMCTL:-}" = 1 ]; then
+  kill -INT "$PPID"
+fi
 EOF
 chmod +x "$fake_bin/systemctl"
 
@@ -52,6 +55,17 @@ export PATH="$fake_bin:$PATH"
 run_install() {
   "$repo_dir/scripts/install.sh" "$@"
 }
+
+if HOME="$test_dir/invalid/home" \
+  XDG_CONFIG_HOME="$test_dir/invalid/config" \
+  XDG_DATA_HOME="$test_dir/invalid/data" \
+  XDG_STATE_HOME="$test_dir/invalid/state" \
+  XDG_BIN_HOME="$test_dir/invalid/bin" \
+  "$repo_dir/scripts/install.sh" --enable cursor >/dev/null 2>&1; then
+  printf '%s\n' "installer accepted an unsupported --enable value" >&2
+  exit 1
+fi
+test ! -e "$test_dir/invalid/bin/caelestia-extras"
 
 run_install install
 
@@ -98,6 +112,18 @@ if TEST_INTERRUPT_GO=1 \
 fi
 test ! -e "$test_dir/cancel/bin/caelestia-extras"
 test ! -e "$test_dir/cancel/config/caelestia-extras/config.toml"
+
+if TEST_INTERRUPT_SYSTEMCTL=1 \
+  HOME="$test_dir/post-apply/home" \
+  XDG_CONFIG_HOME="$test_dir/post-apply/config" \
+  XDG_DATA_HOME="$test_dir/post-apply/data" \
+  XDG_STATE_HOME="$test_dir/post-apply/state" \
+  XDG_BIN_HOME="$test_dir/post-apply/bin" \
+  "$repo_dir/scripts/install.sh" --enable all >/dev/null 2>&1; then
+  printf '%s\n' "installer ignored SIGINT after applying files" >&2
+  exit 1
+fi
+test -x "$test_dir/post-apply/bin/caelestia-extras"
 
 printf '%s\n' '# user-owned' > "$config_file"
 ln -sfn "$test_dir/state/caelestia/theme/gtk.css" "$test_dir/config/gtk-4.0/gtk.css"

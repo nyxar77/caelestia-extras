@@ -8,7 +8,7 @@ usage() {
     "Usage: scripts/install.sh [install|update] [--enable all]" \
     "" \
     "Builds the current checkout, installs managed files, and preserves user configuration." \
-    "Use --enable after configuring the integrations you want to run." \
+    "Use --enable all after configuring the integrations you want to run." \
     "Set CAELESTIA_EXTRAS_SCHEME_FILE, CAELESTIA_EXTRAS_THEME_DIR, or" \
     "CAELESTIA_EXTRAS_PORTAL_THEME_NAME when the matching config values differ."
 }
@@ -90,6 +90,11 @@ cancel() {
   exit 130
 }
 
+interrupt_after_apply() {
+  printf '%s\n' "interrupted after installing files" >&2
+  exit 130
+}
+
 : "${HOME:?HOME is required}"
 
 mode=install
@@ -100,7 +105,7 @@ while [ "$#" -gt 0 ]; do
       mode=$1
       ;;
     --enable)
-      [ "$#" -ge 2 ] || fail "--enable needs a comma-separated list"
+      [ "$#" -ge 2 ] || fail "--enable needs the value 'all'"
       enable=$2
       shift
       ;;
@@ -116,6 +121,10 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
+if [ -n "$enable" ] && [ "$enable" != all ]; then
+  fail "the unified watcher accepts only --enable all"
+fi
+
 need go
 need basename
 need dirname
@@ -125,6 +134,9 @@ need mkdir
 need mktemp
 need readlink
 need sed
+if [ -n "$enable" ]; then
+  need systemctl
+fi
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 repo_dir=$(CDPATH= cd -- "$script_dir/.." && pwd)
@@ -298,6 +310,11 @@ do
   rm -f "$managed"
 done
 
+# File installation is complete. Allow service management and the initial sync
+# to be interrupted without describing the already-installed files as rolled
+# back.
+trap interrupt_after_apply HUP INT TERM
+
 printf '%s complete: %s\n' "$mode" "$binary"
 
 if [ -z "$enable" ]; then
@@ -305,11 +322,9 @@ if [ -z "$enable" ]; then
   exit 0
 fi
 
-need systemctl
 "$binary" --config "$config_file" config validate
 systemctl --user daemon-reload
 
-[ "$enable" = all ] || fail "the unified watcher accepts only --enable all"
 for obsolete in cursor gtk hyprtoolkit portal qt; do
   systemctl --user disable --now "caelestia-extras-$obsolete.path" >/dev/null 2>&1 || true
 done
