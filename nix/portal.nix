@@ -3,13 +3,15 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   cfg = config.programs.caelestia-extras.portal;
   qtPluginPath = lib.makeSearchPathOutput "lib" "lib/qt-6/plugins" [
     pkgs.qt6Packages.qt6ct
     pkgs.kdePackages.breeze
   ];
-in {
+in
+{
   config = lib.mkIf cfg.enable {
     xdg.configFile = {
       "portal-qt/qt6ct/qt6ct.conf".text = ''

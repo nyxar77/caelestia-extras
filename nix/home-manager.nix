@@ -3,11 +3,12 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   cfg = config.programs.caelestia-extras;
-  toml = pkgs.formats.toml {};
-  package = pkgs.callPackage ./package.nix {};
-  bibataSource = pkgs.runCommand "bibata-cursor-source" {} ''
+  toml = pkgs.formats.toml { };
+  defaultPackage = pkgs.callPackage ./package.nix { };
+  bibataSource = pkgs.runCommand "bibata-cursor-source" { } ''
     cp -r ${pkgs.bibata-cursors.src} "$out"
   '';
   configFile = toml.generate "caelestia-extras.toml" (
@@ -65,22 +66,31 @@
     }
   );
   compositorRuntime = {
-    hyprland = [pkgs.hyprland];
+    hyprland = [ pkgs.hyprland ];
   };
-  cursorRuntime = with pkgs; [
-    coreutils
-    dconf
-    hyprcursor
-    systemd
-    util-linux
-  ] ++ compositorRuntime.${cfg.compositor.backend} ++ lib.optionals cfg.cursor.xcursorFallback [cbmp clickgen];
-  gtkRuntime = [pkgs.dconf];
-  watcherRuntime = lib.unique (cursorRuntime ++ gtkRuntime ++ [pkgs.systemd]);
+  cursorRuntime =
+    with pkgs;
+    [
+      coreutils
+      hyprcursor
+    ]
+    ++ compositorRuntime.${cfg.compositor.backend}
+    ++ lib.optionals cfg.cursor.updateGtk [ dconf ]
+    ++ lib.optionals cfg.cursor.xcursorFallback [
+      cbmp
+      clickgen
+    ];
+  gtkRuntime = [ pkgs.dconf ];
+  watcherRuntime = lib.unique (
+    lib.optionals cfg.portal.enable [ pkgs.systemd ]
+    ++ lib.optionals cfg.cursor.enable cursorRuntime
+    ++ lib.optionals cfg.gtk.enable gtkRuntime
+  );
   runtimePackage = pkgs.symlinkJoin {
     name = "caelestia-extras-with-runtime";
-    paths = [package];
-    nativeBuildInputs = [pkgs.makeWrapper];
-    postBuild = ''
+    paths = [ cfg.package ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = lib.optionalString (watcherRuntime != [ ]) ''
       wrapProgram "$out/bin/caelestia-extras" \
         --prefix PATH : ${lib.makeBinPath watcherRuntime}
     '';
@@ -101,14 +111,17 @@
   '';
   localsendPackage = pkgs.symlinkJoin {
     name = "localsend-caelestia";
-    paths = [cfg.localsend.package];
-    nativeBuildInputs = [pkgs.makeWrapper];
+    paths = [ cfg.localsend.package ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram "$out/bin/localsend_app" \
         --set GTK_THEME ${lib.escapeShellArg cfg.gtk.gtk3ThemeName}
     '';
   };
-in {
+  watchEnabled =
+    cfg.cursor.enable || cfg.gtk.enable || cfg.hyprtoolkit.enable || cfg.qt.enable || cfg.portal.enable;
+in
+{
   imports = [
     ./hyprtoolkit.nix
     ./portal.nix
@@ -117,30 +130,104 @@ in {
 
   options.programs.caelestia-extras = {
     enable = lib.mkEnableOption "optional Caelestia integrations";
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = defaultPackage;
+      description = "caelestia-extras package to install and wrap with the enabled runtime dependencies.";
+    };
+    syncOnActivation = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Run one aggregate sync during Home Manager activation when a user D-Bus session is available.";
+    };
+    systemd = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Start the theme watcher as a systemd user service when an enabled integration has files to watch.";
+      };
+      target = lib.mkOption {
+        type = lib.types.str;
+        default = config.wayland.systemd.target;
+        defaultText = lib.literalExpression "config.wayland.systemd.target";
+        description = "Systemd user target that starts and stops the watcher service.";
+      };
+      environment = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [ "XDG_CURRENT_DESKTOP=Hyprland" ];
+        description = "Additional environment assignments for the watcher service, in NAME=value form.";
+      };
+    };
     compositor.backend = lib.mkOption {
-      type = lib.types.enum ["hyprland"];
+      type = lib.types.enum [ "hyprland" ];
       default = "hyprland";
       description = "Compositor backend used for compositor-specific integrations.";
     };
     schemeFile = lib.mkOption {
       type = lib.types.str;
       default = "${config.xdg.stateHome}/caelestia/scheme.json";
+      description = "Path to Caelestia's active scheme JSON file.";
     };
     cursor = {
       enable = lib.mkEnableOption "dynamic Bibata cursor";
-      source = lib.mkOption { type = lib.types.str; default = "${bibataSource}/svg/modern"; };
-      buildConfig = lib.mkOption { type = lib.types.str; default = "${bibataSource}/configs/normal/x.build.toml"; };
-      iconDir = lib.mkOption { type = lib.types.str; default = "${config.xdg.dataHome}/icons"; };
-      theme = lib.mkOption { type = lib.types.str; default = "Bibata-Caelestia"; };
-      size = lib.mkOption { type = lib.types.ints.positive; default = 20; };
-      xcursorSizes = lib.mkOption { type = lib.types.listOf lib.types.ints.positive; default = [20 24 32]; };
-      xcursorFallback = lib.mkOption { type = lib.types.bool; default = true; };
-      updateGtk = lib.mkOption { type = lib.types.bool; default = true; };
+      source = lib.mkOption {
+        type = lib.types.str;
+        default = "${bibataSource}/svg/modern";
+        description = "Directory containing the Bibata SVG cursor sources.";
+      };
+      buildConfig = lib.mkOption {
+        type = lib.types.str;
+        default = "${bibataSource}/configs/normal/x.build.toml";
+        description = "Bibata build configuration containing cursor names, hotspots, and animation metadata.";
+      };
+      iconDir = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.xdg.dataHome}/icons";
+        description = "Directory in which the generated cursor theme is installed.";
+      };
+      theme = lib.mkOption {
+        type = lib.types.str;
+        default = "Bibata-Caelestia";
+        description = "Name of the generated Hyprcursor and XCursor theme.";
+      };
+      size = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 20;
+        description = "Cursor size passed to the compositor and GTK settings.";
+      };
+      xcursorSizes = lib.mkOption {
+        type = lib.types.listOf lib.types.ints.positive;
+        default = [
+          20
+          24
+          32
+        ];
+        description = "Pixel sizes included in the generated XCursor fallback.";
+      };
+      xcursorFallback = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Generate an XCursor fallback after wallpaper changes settle.";
+      };
+      updateGtk = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Update the GTK cursor theme and size through dconf.";
+      };
     };
     gtk = {
       enable = lib.mkEnableOption "Caelestia GTK preference sync";
-      darkTheme = lib.mkOption { type = lib.types.str; default = "adw-gtk3-dark"; };
-      lightTheme = lib.mkOption { type = lib.types.str; default = "adw-gtk3"; };
+      darkTheme = lib.mkOption {
+        type = lib.types.str;
+        default = "adw-gtk3-dark";
+        description = "GTK theme selected when the active Caelestia scheme is dark.";
+      };
+      lightTheme = lib.mkOption {
+        type = lib.types.str;
+        default = "adw-gtk3";
+        description = "GTK theme selected when the active Caelestia scheme is light.";
+      };
       themeDir = lib.mkOption {
         type = lib.types.str;
         default = "${config.xdg.stateHome}/caelestia/theme";
@@ -152,20 +239,56 @@ in {
         description = "Named stock-Adwaita GTK 3 theme with Caelestia-generated colours.";
       };
       directLaunch = lib.mkOption {
-        type = lib.types.attrsOf (lib.types.submodule {
-          options = {
-            name = lib.mkOption { type = lib.types.str; };
-            exec = lib.mkOption { type = lib.types.str; };
-            icon = lib.mkOption { type = lib.types.nullOr (lib.types.either lib.types.str lib.types.path); default = null; };
-            comment = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; };
-            genericName = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; };
-            categories = lib.mkOption { type = lib.types.nullOr (lib.types.listOf lib.types.str); default = null; };
-            mimeType = lib.mkOption { type = lib.types.nullOr (lib.types.listOf lib.types.str); default = null; };
-            startupNotify = lib.mkOption { type = lib.types.nullOr lib.types.bool; default = null; };
-            settings = lib.mkOption { type = lib.types.attrsOf lib.types.str; default = {}; };
-          };
-        });
-        default = {};
+        type = lib.types.attrsOf (
+          lib.types.submodule {
+            options = {
+              name = lib.mkOption {
+                type = lib.types.str;
+                description = "Application name shown by the desktop entry.";
+              };
+              exec = lib.mkOption {
+                type = lib.types.str;
+                description = "Command line written to the desktop entry's Exec key.";
+              };
+              icon = lib.mkOption {
+                type = lib.types.nullOr (lib.types.either lib.types.str lib.types.path);
+                default = null;
+                description = "Optional icon name or path.";
+              };
+              comment = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Optional desktop-entry comment.";
+              };
+              genericName = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Optional generic application name.";
+              };
+              categories = lib.mkOption {
+                type = lib.types.nullOr (lib.types.listOf lib.types.str);
+                default = null;
+                description = "Optional desktop-entry categories.";
+              };
+              mimeType = lib.mkOption {
+                type = lib.types.nullOr (lib.types.listOf lib.types.str);
+                default = null;
+                description = "Optional MIME types and URI handlers.";
+              };
+              startupNotify = lib.mkOption {
+                type = lib.types.nullOr lib.types.bool;
+                default = null;
+                description = "Optional startup-notification setting.";
+              };
+              settings = lib.mkOption {
+                type = lib.types.attrsOf lib.types.str;
+                default = { };
+                description = "Additional string-valued desktop-entry keys.";
+              };
+            };
+          }
+        );
+        default = { };
         description = ''
           Desktop-entry overrides that launch GTK applications directly instead
           of through D-Bus activation. Use the upstream desktop ID as the
@@ -189,7 +312,11 @@ in {
     };
     pavucontrol = {
       enable = lib.mkEnableOption "Caelestia-themed pavucontrol-qt launcher";
-      command = lib.mkOption { type = lib.types.str; default = "pavucontrol-qt"; };
+      command = lib.mkOption {
+        type = lib.types.str;
+        default = "pavucontrol-qt";
+        description = "pavucontrol-qt executable launched by the generated desktop entry.";
+      };
     };
     localsend = {
       enable = lib.mkEnableOption "Caelestia-themed GTK host window for LocalSend";
@@ -230,12 +357,24 @@ in {
         default = "${config.xdg.stateHome}/caelestia/theme";
         description = "Directory containing the generated PrismLauncher theme.";
       };
-      themeName = lib.mkOption { type = lib.types.str; default = "caelestia-breeze"; };
+      themeName = lib.mkOption {
+        type = lib.types.str;
+        default = "caelestia-breeze";
+        description = "Directory name used for the generated PrismLauncher theme.";
+      };
     };
     qbittorrent = {
       enable = lib.mkEnableOption "native Breeze integration for qBittorrent";
-      command = lib.mkOption { type = lib.types.str; default = "qbittorrent"; };
-      configFile = lib.mkOption { type = lib.types.str; default = "${config.xdg.configHome}/qBittorrent/qBittorrent.conf"; };
+      command = lib.mkOption {
+        type = lib.types.str;
+        default = "qbittorrent";
+        description = "qBittorrent executable launched by the generated desktop entry.";
+      };
+      configFile = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.xdg.configHome}/qBittorrent/qBittorrent.conf";
+        description = "qBittorrent preferences file updated by the native-theme sync.";
+      };
     };
     portal = {
       enable = lib.mkEnableOption "Caelestia-themed XDG desktop portals";
@@ -274,108 +413,159 @@ in {
         message = "programs.caelestia-extras.localsend requires programs.caelestia-extras.gtk";
       }
     ];
-    home.packages = [runtimePackage] ++ lib.optional cfg.localsend.enable localsendPackage;
-    xdg.configFile = {
-      "caelestia-extras/config.toml".source = configFile;
-    } // lib.optionalAttrs cfg.gtk.enable {
-      "caelestia/templates/gtk.css".source = ../assets/manual/templates/gtk.css;
-      "caelestia/templates/gtk4.css".source = ../assets/manual/templates/gtk4.css;
-      "caelestia/templates/gtk3-adwaita.css".source = ../assets/manual/templates/gtk3-adwaita.css;
-      "gtk-3.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk.css";
-      "gtk-4.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk4.css";
-    } // lib.optionalAttrs (cfg.qt.enable || cfg.portal.enable) {
-      "caelestia/templates/qt-caelestia.conf".source = ../assets/manual/templates/qt-caelestia.conf;
-    } // lib.optionalAttrs cfg.qt.enable {
-      "caelestia/templates/breeze-caelestia.colors".source = ../assets/manual/templates/breeze-caelestia.colors;
-    } // lib.optionalAttrs cfg.pavucontrol.enable {
-      "caelestia/templates/pavucontrol-qt.qss".source = ../assets/manual/templates/pavucontrol-qt.qss;
-    } // lib.optionalAttrs cfg.prismlauncher.enable {
-      "caelestia/templates/prismlauncher.json".source = ../assets/manual/templates/prismlauncher.json;
-      "caelestia/templates/prismlauncher.qss".source = ../assets/manual/templates/qt6ct-caelestia.qss;
+    warnings = lib.optional (cfg.systemd.enable && !watchEnabled) ''
+      programs.caelestia-extras.systemd.enable is true, but none of cursor,
+      gtk, hyprtoolkit, qt, or portal is enabled. The watcher service will not
+      be created because there are no generated files to watch.
+    '';
+    home = {
+      packages = [ runtimePackage ] ++ lib.optional cfg.localsend.enable localsendPackage;
+      activation = {
+        caelestiaExtrasRetirePathUnits = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+            ${pkgs.systemd}/bin/systemctl --user disable --now \
+              caelestia-extras-cursor.path \
+              caelestia-extras-gtk.path \
+              caelestia-extras-hyprtoolkit.path \
+              caelestia-extras-portal.path \
+              caelestia-extras-qt.path \
+              caelestia-extras-qbittorrent.path >/dev/null 2>&1 || true
+            ${pkgs.systemd}/bin/systemctl --user stop caelestia-extras-xcursor.service >/dev/null 2>&1 || true
+            ${pkgs.systemd}/bin/systemctl --user reset-failed \
+              caelestia-extras-cursor.path caelestia-extras-cursor.service \
+              caelestia-extras-gtk.path caelestia-extras-gtk.service \
+              caelestia-extras-hyprtoolkit.path caelestia-extras-hyprtoolkit.service \
+              caelestia-extras-portal.path caelestia-extras-portal.service \
+              caelestia-extras-qt.path caelestia-extras-qt.service \
+              caelestia-extras-qbittorrent.path caelestia-extras-qbittorrent.service \
+              caelestia-extras-xcursor.service >/dev/null 2>&1 || true
+          fi
+        '';
+        caelestiaExtrasSync = lib.mkIf cfg.syncOnActivation (
+          lib.hm.dag.entryAfter [ "caelestiaExtrasRetirePathUnits" ] ''
+            if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+              PATH=${lib.makeBinPath watcherRuntime} ${command} sync
+            fi
+          ''
+        );
+      };
     };
-    xdg.dataFile = lib.optionalAttrs cfg.gtk.enable {
-      "themes/${cfg.gtk.gtk3ThemeName}/gtk-3.0/gtk.css".source =
-        config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk3-adwaita.css";
-      "themes/${cfg.gtk.gtk3ThemeName}/gtk-3.0/base-dark.css".source = ../assets/manual/theme/base-dark.css;
-      "themes/${cfg.gtk.gtk3ThemeName}/gtk-3.0/base-light.css".source = ../assets/manual/theme/base-light.css;
-    } // lib.optionalAttrs cfg.prismlauncher.enable {
-      "PrismLauncher/themes/${cfg.prismlauncher.themeName}/theme.json".source =
-        config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.json";
-      "PrismLauncher/themes/${cfg.prismlauncher.themeName}/themeStyle.css".source =
-        config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.qss";
-    };
-    xdg.desktopEntries =
-      lib.optionalAttrs cfg.gtk.enable (lib.mapAttrs (_: entry: {
-        inherit (entry) name exec icon comment genericName categories mimeType startupNotify;
-        terminal = false;
-        settings = entry.settings // {DBusActivatable = "false";};
-      }) cfg.gtk.directLaunch)
-      // lib.optionalAttrs cfg.pavucontrol.enable {
-        pavucontrol-qt = {
-          name = "PulseAudio Volume Control";
-          genericName = "Volume Control";
-          exec = "${command} pavucontrol";
-          icon = "multimedia-volume-control";
-          categories = ["AudioVideo" "Audio" "Mixer" "Qt"];
-        };
+    xdg = {
+      configFile = {
+        "caelestia-extras/config.toml".source = configFile;
       }
-      // lib.optionalAttrs cfg.qbittorrent.enable {
-        "org.qbittorrent.qBittorrent" = {
-          name = "qBittorrent";
-          genericName = "BitTorrent client";
-          comment = "Download and share files over BitTorrent";
-          exec = "${qbittorrentLauncher} %U";
-          icon = "qbittorrent";
-          categories = ["Network" "FileTransfer" "P2P" "Qt"];
-          mimeType = ["application/x-bittorrent" "x-scheme-handler/magnet"];
-          terminal = false;
-          startupNotify = false;
-          settings = {
-            SingleMainWindow = "true";
-            StartupWMClass = "qbittorrent";
+      // lib.optionalAttrs cfg.gtk.enable {
+        "caelestia/templates/gtk.css".source = ../assets/manual/templates/gtk.css;
+        "caelestia/templates/gtk4.css".source = ../assets/manual/templates/gtk4.css;
+        "caelestia/templates/gtk3-adwaita.css".source = ../assets/manual/templates/gtk3-adwaita.css;
+        "gtk-3.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk.css";
+        "gtk-4.0/gtk.css".source = config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk4.css";
+      }
+      // lib.optionalAttrs (cfg.qt.enable || cfg.portal.enable) {
+        "caelestia/templates/qt-caelestia.conf".source = ../assets/manual/templates/qt-caelestia.conf;
+      }
+      // lib.optionalAttrs cfg.qt.enable {
+        "caelestia/templates/breeze-caelestia.colors".source =
+          ../assets/manual/templates/breeze-caelestia.colors;
+      }
+      // lib.optionalAttrs cfg.pavucontrol.enable {
+        "caelestia/templates/pavucontrol-qt.qss".source = ../assets/manual/templates/pavucontrol-qt.qss;
+      }
+      // lib.optionalAttrs cfg.prismlauncher.enable {
+        "caelestia/templates/prismlauncher.json".source = ../assets/manual/templates/prismlauncher.json;
+        "caelestia/templates/prismlauncher.qss".source = ../assets/manual/templates/qt6ct-caelestia.qss;
+      };
+      dataFile =
+        lib.optionalAttrs cfg.gtk.enable {
+          "themes/${cfg.gtk.gtk3ThemeName}/gtk-3.0/gtk.css".source =
+            config.lib.file.mkOutOfStoreSymlink "${cfg.gtk.themeDir}/gtk3-adwaita.css";
+          "themes/${cfg.gtk.gtk3ThemeName}/gtk-3.0/base-dark.css".source =
+            ../assets/manual/theme/base-dark.css;
+          "themes/${cfg.gtk.gtk3ThemeName}/gtk-3.0/base-light.css".source =
+            ../assets/manual/theme/base-light.css;
+        }
+        // lib.optionalAttrs cfg.prismlauncher.enable {
+          "PrismLauncher/themes/${cfg.prismlauncher.themeName}/theme.json".source =
+            config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.json";
+          "PrismLauncher/themes/${cfg.prismlauncher.themeName}/themeStyle.css".source =
+            config.lib.file.mkOutOfStoreSymlink "${cfg.prismlauncher.themeDir}/prismlauncher.qss";
+        };
+      desktopEntries =
+        lib.optionalAttrs cfg.gtk.enable (
+          lib.mapAttrs (_: entry: {
+            inherit (entry)
+              name
+              exec
+              icon
+              comment
+              genericName
+              categories
+              mimeType
+              startupNotify
+              ;
+            terminal = false;
+            settings = entry.settings // {
+              DBusActivatable = "false";
+            };
+          }) cfg.gtk.directLaunch
+        )
+        // lib.optionalAttrs cfg.pavucontrol.enable {
+          pavucontrol-qt = {
+            name = "PulseAudio Volume Control";
+            genericName = "Volume Control";
+            exec = "${command} pavucontrol";
+            icon = "multimedia-volume-control";
+            categories = [
+              "AudioVideo"
+              "Audio"
+              "Mixer"
+              "Qt"
+            ];
+          };
+        }
+        // lib.optionalAttrs cfg.qbittorrent.enable {
+          "org.qbittorrent.qBittorrent" = {
+            name = "qBittorrent";
+            genericName = "BitTorrent client";
+            comment = "Download and share files over BitTorrent";
+            exec = "${qbittorrentLauncher} %U";
+            icon = "qbittorrent";
+            categories = [
+              "Network"
+              "FileTransfer"
+              "P2P"
+              "Qt"
+            ];
+            mimeType = [
+              "application/x-bittorrent"
+              "x-scheme-handler/magnet"
+            ];
+            terminal = false;
+            startupNotify = false;
+            settings = {
+              SingleMainWindow = "true";
+              StartupWMClass = "qbittorrent";
+            };
           };
         };
-      };
-    home.activation.caelestiaExtrasRetirePathUnits = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
-        ${pkgs.systemd}/bin/systemctl --user disable --now \
-          caelestia-extras-cursor.path \
-          caelestia-extras-gtk.path \
-          caelestia-extras-hyprtoolkit.path \
-          caelestia-extras-portal.path \
-          caelestia-extras-qt.path \
-          caelestia-extras-qbittorrent.path >/dev/null 2>&1 || true
-        ${pkgs.systemd}/bin/systemctl --user stop caelestia-extras-xcursor.service >/dev/null 2>&1 || true
-        ${pkgs.systemd}/bin/systemctl --user reset-failed \
-          caelestia-extras-cursor.path caelestia-extras-cursor.service \
-          caelestia-extras-gtk.path caelestia-extras-gtk.service \
-          caelestia-extras-hyprtoolkit.path caelestia-extras-hyprtoolkit.service \
-          caelestia-extras-portal.path caelestia-extras-portal.service \
-          caelestia-extras-qt.path caelestia-extras-qt.service \
-          caelestia-extras-qbittorrent.path caelestia-extras-qbittorrent.service \
-          caelestia-extras-xcursor.service >/dev/null 2>&1 || true
-      fi
-    '';
-    home.activation.caelestiaExtrasSync = lib.hm.dag.entryAfter ["caelestiaExtrasRetirePathUnits"] ''
-      if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
-        PATH=${lib.makeBinPath watcherRuntime} ${command} sync
-      fi
-    '';
-    systemd.user.services.caelestia-extras-watch = {
+    };
+    systemd.user.services.caelestia-extras-watch = lib.mkIf (cfg.systemd.enable && watchEnabled) {
       Unit = {
         Description = "Keep desktop integrations synced with Caelestia";
-        After = ["graphical-session.target"];
-        PartOf = ["graphical-session.target"];
+        After = [ cfg.systemd.target ];
+        PartOf = [ cfg.systemd.target ];
         StartLimitIntervalSec = 0;
       };
       Service = {
         Type = "simple";
-        Environment = "PATH=${lib.makeBinPath watcherRuntime}";
+        Environment =
+          lib.optional (watcherRuntime != [ ]) "PATH=${lib.makeBinPath watcherRuntime}"
+          ++ cfg.systemd.environment;
         ExecStart = "${command} watch";
         Restart = "on-failure";
         RestartSec = 1;
       };
-      Install.WantedBy = ["graphical-session.target"];
+      Install.WantedBy = [ cfg.systemd.target ];
     };
   };
 }
