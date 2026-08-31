@@ -54,3 +54,66 @@ func TestBuildTheme(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestInstallPreservesExistingXCursorFallback(t *testing.T) {
+	root := t.TempDir()
+	cursor := config.Cursor{IconDir: root, Theme: "Test"}
+	target := filepath.Join(root, cursor.Theme)
+	generated := filepath.Join(root, "generated")
+	if err := os.MkdirAll(filepath.Join(target, "cursors"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(target, "cursors", "left_ptr"), []byte("fallback"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(generated, "hyprcursors"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(generated, "manifest.hl"), []byte("name = Test\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := install(cursor, generated); err != nil {
+		t.Fatal(err)
+	}
+	for path, expected := range map[string]string{
+		filepath.Join(target, "manifest.hl"):         "name = Test\n",
+		filepath.Join(target, "cursors", "left_ptr"): "fallback",
+	} {
+		value, err := os.ReadFile(path)
+		if err != nil || string(value) != expected {
+			t.Errorf("%s = %q, %v; want %q", path, value, err, expected)
+		}
+	}
+	if _, err := os.Stat(generated); !os.IsNotExist(err) {
+		t.Errorf("generated directory still exists: %v", err)
+	}
+}
+
+func TestReplaceDirectoryReplacesExistingContents(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source")
+	target := filepath.Join(root, "target")
+	if err := os.MkdirAll(source, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(target, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(source, "new"), []byte("new"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(target, "old"), []byte("old"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := replaceDirectory(source, target); err != nil {
+		t.Fatal(err)
+	}
+	if value, err := os.ReadFile(filepath.Join(target, "new")); err != nil || string(value) != "new" {
+		t.Fatalf("replacement = %q, %v", value, err)
+	}
+	if _, err := os.Stat(filepath.Join(target, "old")); !os.IsNotExist(err) {
+		t.Errorf("old content still exists: %v", err)
+	}
+}

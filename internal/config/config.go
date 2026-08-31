@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -84,7 +85,21 @@ func Load(path string) (Config, error) {
 		return Config{}, fmt.Errorf("read config: %w", err)
 	}
 	var config Config
-	if err := toml.Unmarshal(data, &config); err != nil {
+	decoder := toml.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&config); err != nil {
+		var unknown *toml.StrictMissingError
+		if errors.As(err, &unknown) {
+			fields := make([]string, 0, len(unknown.Errors))
+			for _, missing := range unknown.Errors {
+				fields = append(fields, strings.Join(missing.Key(), "."))
+			}
+			label := "field"
+			if len(fields) != 1 {
+				label = "fields"
+			}
+			return Config{}, fmt.Errorf("parse config: unknown %s: %s", label, strings.Join(fields, ", "))
+		}
 		return Config{}, fmt.Errorf("parse config: %w", err)
 	}
 	if config.Scheme.File == "" {
@@ -112,6 +127,11 @@ func Load(path string) (Config, error) {
 		}
 		if cursor.Size < 1 {
 			return Config{}, fmt.Errorf("cursor size must be positive")
+		}
+		for _, size := range cursor.XCursorSizes {
+			if size < 1 {
+				return Config{}, fmt.Errorf("cursor xcursor_sizes must contain only positive values")
+			}
 		}
 	}
 	if config.GTK != nil {
@@ -240,6 +260,9 @@ func (c Config) Validate() error {
 	}
 	if c.Portal != nil {
 		enabled++
+		if err := commandAvailable("systemctl"); err != nil {
+			problems = append(problems, err.Error())
+		}
 	}
 	if enabled == 0 {
 		problems = append(problems, "no integrations are enabled")

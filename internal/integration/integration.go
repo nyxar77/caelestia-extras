@@ -470,6 +470,15 @@ func writeQBittorrentPreferences(path string) error {
 	if !changed {
 		return nil
 	}
+	mode := os.FileMode(0o644)
+	if info, statErr := os.Lstat(path); statErr == nil {
+		if info.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("qBittorrent config %q is a symlink; refusing to replace it", path)
+		}
+		mode = info.Mode().Perm()
+	} else if !os.IsNotExist(statErr) {
+		return statErr
+	}
 
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
@@ -480,7 +489,7 @@ func writeQBittorrentPreferences(path string) error {
 	}
 	temporary := file.Name()
 	defer os.Remove(temporary)
-	if err := file.Chmod(0o644); err != nil {
+	if err := file.Chmod(mode); err != nil {
 		file.Close()
 		return err
 	}
@@ -605,17 +614,6 @@ func copyFile(source, destination string) error {
 		return err
 	}
 	return os.Rename(temporary, destination)
-}
-
-func removeEmpty(path string) error {
-	err := os.Remove(path)
-	if err == nil || os.IsNotExist(err) {
-		return nil
-	}
-	if errors.Is(err, syscall.ENOTEMPTY) {
-		return nil
-	}
-	return err
 }
 
 func run(name string, arguments ...string) error {

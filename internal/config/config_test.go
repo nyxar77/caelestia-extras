@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -15,6 +16,48 @@ func TestSchemaIsValidJSON(t *testing.T) {
 	}
 	if !json.Valid(data) {
 		t.Fatal("configuration schema is not valid JSON")
+	}
+	var schema struct {
+		Properties map[string]schemaNode `json:"properties"`
+	}
+	if err := json.Unmarshal(data, &schema); err != nil {
+		t.Fatal(err)
+	}
+	assertSchemaMatches(t, reflect.TypeOf(Config{}), schema.Properties, "")
+}
+
+type schemaNode struct {
+	Properties map[string]schemaNode `json:"properties"`
+}
+
+func assertSchemaMatches(t *testing.T, configType reflect.Type, properties map[string]schemaNode, path string) {
+	t.Helper()
+	if configType.Kind() == reflect.Pointer {
+		configType = configType.Elem()
+	}
+	fields := make(map[string]reflect.StructField)
+	for index := range configType.NumField() {
+		field := configType.Field(index)
+		fields[field.Tag.Get("toml")] = field
+	}
+	for name, field := range fields {
+		node, ok := properties[name]
+		if !ok {
+			t.Errorf("schema is missing %s%s", path, name)
+			continue
+		}
+		fieldType := field.Type
+		if fieldType.Kind() == reflect.Pointer {
+			fieldType = fieldType.Elem()
+		}
+		if fieldType.Kind() == reflect.Struct {
+			assertSchemaMatches(t, fieldType, node.Properties, path+name+".")
+		}
+	}
+	for name := range properties {
+		if _, ok := fields[name]; !ok {
+			t.Errorf("schema contains unknown property %s%s", path, name)
+		}
 	}
 }
 
@@ -29,6 +72,17 @@ func TestLoadDefaultsToHyprland(t *testing.T) {
 	}
 	if config.Compositor.Backend != "hyprland" {
 		t.Fatalf("backend = %q", config.Compositor.Backend)
+	}
+}
+
+func TestManualStarterConfigLoads(t *testing.T) {
+	path := filepath.Join("..", "..", "assets", "manual", "config.toml")
+	configuration, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if configuration.Compositor.Backend != "hyprland" {
+		t.Fatalf("backend = %q", configuration.Compositor.Backend)
 	}
 }
 
@@ -64,6 +118,27 @@ func TestLoadSetsDefaultQBittorrentConfig(t *testing.T) {
 	}
 }
 
+func TestLoadRejectsUnknownFields(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.toml")
+	if err := os.WriteFile(path, []byte("[gtk]\ndark_thme = \"typo\"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "dark_thme") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestLoadRejectsNonPositiveXCursorSize(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.toml")
+	contents := "[cursor]\nsource = \"/tmp/source\"\nbuild_config = \"/tmp/build.toml\"\nxcursor_sizes = [24, 0]\n"
+	if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "xcursor_sizes") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestValidateAcceptsGeneratedOutputThatDoesNotExistYet(t *testing.T) {
 	config := Config{Hyprtoolkit: &Hyprtoolkit{}}
 	if err := config.Validate(); err != nil {
@@ -94,6 +169,14 @@ func TestValidateReportsMissingQtPlatformThemes(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 	err := Config{Qt: &Qt{}}.Validate()
 	if err == nil || !strings.Contains(err.Error(), "qt5ct") || !strings.Contains(err.Error(), "qt6ct") {
+		t.Fatalf("unexpected validation error: %v", err)
+	}
+}
+
+func TestValidateReportsMissingPortalServiceManager(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+	err := Config{Portal: &Portal{}}.Validate()
+	if err == nil || !strings.Contains(err.Error(), "systemctl") {
 		t.Fatalf("unexpected validation error: %v", err)
 	}
 }

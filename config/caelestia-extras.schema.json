@@ -2,11 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/nyxar77/caelestia-extras/raw/master/config/caelestia-extras.schema.json",
   "title": "caelestia-extras configuration",
+  "description": "Runtime integrations enabled by the presence of their TOML section.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "compositor": {
       "type": "object",
+      "description": "Compositor-specific behavior used by the cursor integration.",
       "additionalProperties": false,
       "properties": {
         "backend": {
@@ -19,6 +21,7 @@
     },
     "scheme": {
       "type": "object",
+      "description": "Location of Caelestia's active colour scheme.",
       "additionalProperties": false,
       "properties": {
         "file": {
@@ -29,33 +32,37 @@
     },
     "cursor": {
       "type": "object",
+      "description": "Dynamic Bibata Hyprcursor and optional XCursor generation.",
       "additionalProperties": false,
       "required": ["source", "build_config"],
       "properties": {
         "source": {"type": "string", "description": "Bibata SVG source directory."},
         "build_config": {"type": "string", "description": "Bibata cursor build configuration."},
-        "icon_dir": {"type": "string", "description": "Directory where the generated cursor is installed."},
-        "theme": {"type": "string", "default": "Bibata-Caelestia"},
-        "size": {"type": "integer", "minimum": 1, "default": 20},
+        "icon_dir": {"type": "string", "description": "Directory where the generated cursor theme is installed."},
+        "theme": {"type": "string", "default": "Bibata-Caelestia", "description": "Name of the generated Hyprcursor and XCursor theme."},
+        "size": {"type": "integer", "minimum": 1, "default": 20, "description": "Cursor size passed to the compositor and GTK settings."},
         "xcursor_sizes": {
           "type": "array",
           "items": {"type": "integer", "minimum": 1},
-          "default": [20, 24, 32]
+          "default": [20, 24, 32],
+          "description": "Pixel sizes included in the generated XCursor fallback."
         },
-        "xcursor_fallback": {"type": "boolean", "default": false},
-        "update_gtk": {"type": "boolean", "default": false}
+        "xcursor_fallback": {"type": "boolean", "default": false, "description": "Build and maintain an XCursor fallback."},
+        "update_gtk": {"type": "boolean", "default": false, "description": "Update the GTK cursor theme and size through dconf."}
       }
     },
     "gtk": {
       "type": "object",
+      "description": "GTK light/dark preference and theme synchronization.",
       "additionalProperties": false,
       "properties": {
-        "dark_theme": {"type": "string", "default": "adw-gtk3-dark"},
-        "light_theme": {"type": "string", "default": "adw-gtk3"}
+        "dark_theme": {"type": "string", "default": "adw-gtk3-dark", "description": "GTK theme selected for a dark Caelestia scheme."},
+        "light_theme": {"type": "string", "default": "adw-gtk3", "description": "GTK theme selected for a light Caelestia scheme."}
       }
     },
     "hyprtoolkit": {
       "type": "object",
+      "description": "Copy the generated Hyprtoolkit configuration into its active location.",
       "additionalProperties": false,
       "properties": {
         "theme_dir": {"type": "string", "description": "Directory containing generated Hyprtoolkit output."},
@@ -64,13 +71,15 @@
     },
     "pavucontrol": {
       "type": "object",
+      "description": "Launch pavucontrol-qt with Caelestia's generated stylesheet.",
       "additionalProperties": false,
       "properties": {
-        "command": {"type": "string", "default": "pavucontrol-qt"}
+        "command": {"type": "string", "default": "pavucontrol-qt", "description": "pavucontrol-qt executable to launch."}
       }
     },
     "qt": {
       "type": "object",
+      "description": "Shared qt5ct, qt6ct, and KDE/Breeze palette synchronization.",
       "additionalProperties": false,
       "properties": {
         "theme_dir": {"type": "string", "description": "Directory containing generated Qt palette and Breeze colour-scheme files."},
@@ -80,20 +89,22 @@
     },
     "qbittorrent": {
       "type": "object",
+      "description": "Restore qBittorrent's native Qt/Breeze appearance.",
       "additionalProperties": false,
       "properties": {
-        "command": {"type": "string", "default": "qbittorrent"},
-        "config_file": {"type": "string", "description": "qBittorrent configuration file."}
+        "command": {"type": "string", "default": "qbittorrent", "description": "qBittorrent executable used by validation and the Home Manager launcher."},
+        "config_file": {"type": "string", "description": "qBittorrent preferences file updated by the sync."}
       }
     },
     "portal": {
       "type": "object",
+      "description": "Isolated GTK and Qt themes for the desktop portal backends.",
       "additionalProperties": false,
       "properties": {
         "theme_dir": {"type": "string", "description": "Directory containing generated portal theme files."},
-        "config_home": {"type": "string"},
-        "data_home": {"type": "string"},
-        "theme_name": {"type": "string", "default": "Caelestia-Portal"}
+        "config_home": {"type": "string", "description": "XDG configuration directory containing the portal-specific qt6ct tree."},
+        "data_home": {"type": "string", "description": "XDG data directory containing the private GTK portal theme."},
+        "theme_name": {"type": "string", "default": "Caelestia-Portal", "description": "Private GTK theme name assigned to xdg-desktop-portal-gtk."}
       }
     }
   }
