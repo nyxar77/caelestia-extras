@@ -25,21 +25,16 @@ Import the module from a Home Manager module where `inputs` is available:
 
   programs.caelestia-extras = {
     enable = true;
+    autoEnable = true;
 
-    cursor.enable = true;
-    gtk.enable = true;
-    hyprtoolkit.enable = true;
-    localsend.enable = true;
-    pavucontrol.enable = true;
-    qt.enable = true;
-    prismlauncher.enable = true;
-    qbittorrent.enable = true;
-    portal.enable = true;
+    # Disable integrations you do not want:
+    # localsend.enable = false;
   };
 
-  # These three integration flags configure launchers and themes; they do not
+  # These four integration flags configure launchers and themes; they do not
   # install the applications.
   home.packages = with pkgs; [
+    imv
     pavucontrol-qt
     prismlauncher
     qbittorrent
@@ -58,6 +53,32 @@ The default paths expect Caelestia to write:
 
 Change `schemeFile` and the relevant `themeDir` options together if Caelestia
 uses another location.
+
+`autoEnable` defaults to `true`, like Stylix. Each integration's `enable`
+option inherits that value but can be overridden explicitly. To opt into a
+small set instead, use:
+
+```nix
+programs.caelestia-extras = {
+  enable = true;
+  autoEnable = false;
+  gtk.enable = true;
+  imv.enable = true;
+};
+```
+
+MPV theming is explicitly opt-in because it requires ModernZ in the final MPV
+package:
+
+```nix
+{
+  programs.caelestia-extras.mpv.enable = true;
+  programs.mpv = {
+    enable = true;
+    scripts = [ pkgs.mpvScripts.modernz ];
+  };
+}
+```
 
 ### Caelestia CLI GTK ownership
 
@@ -108,7 +129,9 @@ not generate the same paths from another Home Manager module or from Stylix.
 | --- | --- |
 | GTK | `gtk-3.0/gtk.css`, `gtk-4.0/gtk.css`, the named GTK 3 theme, and GNOME theme settings in dconf |
 | Qt | `qt5ct/qt5ct.conf`, `qt6ct/qt6ct.conf`, `environment.d/10-caelestia-qt.conf`, Qt session variables, and `[General] ColorScheme` in `kdeglobals` |
-| Portal | portal-specific qt6ct configuration and systemd drop-ins for the GTK and Hyprland portal services |
+| Portal | portal-specific qt6ct configuration and systemd drop-ins for the GTK, GNOME, and Hyprland portal services |
+| imv | `imv/config` |
+| MPV | `mpv/script-opts/modernz.conf` |
 | pavucontrol | the `pavucontrol-qt.desktop` entry |
 | qBittorrent | `org.qbittorrent.qBittorrent.desktop` and the appearance keys in `qBittorrent.conf` |
 | PrismLauncher | the selected theme directory under `$XDG_DATA_HOME/PrismLauncher/themes` |
@@ -123,15 +146,16 @@ to replace a symlink, including a Home Manager-managed `qBittorrent.conf`.
 
 ## Option reference
 
-The top-level module and every integration default to disabled.
-`systemd.enable` defaults to `true`, but it has no effect until the module and
-an integration with generated files to watch are enabled.
+The top-level module defaults to disabled. `autoEnable` and `systemd.enable`
+default to `true`, but neither has an effect until the top-level module is
+enabled. Individual integration values override `autoEnable`.
 
 ### Core
 
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `programs.caelestia-extras.enable` | `false` | Install the CLI, generated config, and resources for selected integrations |
+| `autoEnable` | `true` | Enable integrations by default; individual `enable` values take precedence |
 | `package` | repository package | Package installed and wrapped with the required runtime tools |
 | `syncOnActivation` | `true` | Run an aggregate sync during activation when user D-Bus is available |
 | `systemd.enable` | `true` | Create the watcher when an enabled integration has files to watch |
@@ -144,7 +168,7 @@ an integration with generated files to watch are enabled.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `cursor.enable` | `false` | Enable dynamic Bibata cursor generation |
+| `cursor.enable` | `autoEnable` | Enable dynamic Bibata cursor generation |
 | `cursor.source` | Bibata's `svg/modern` directory from `pkgs.bibata-cursors.src` | SVG source directory |
 | `cursor.buildConfig` | Bibata's `configs/normal/x.build.toml` | Build metadata used for cursor names, hotspots, and animation |
 | `cursor.iconDir` | `${config.xdg.dataHome}/icons` | Directory where the generated theme is installed |
@@ -162,7 +186,7 @@ must opt into those side effects.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `gtk.enable` | `false` | Enable GTK light/dark preference and theme synchronization |
+| `gtk.enable` | `autoEnable` | Enable GTK light/dark preference and theme synchronization |
 | `gtk.darkTheme` | `"adw-gtk3-dark"` | GTK theme selected for a dark Caelestia scheme |
 | `gtk.lightTheme` | `"adw-gtk3"` | GTK theme selected for a light Caelestia scheme |
 | `gtk.themeDir` | `${config.xdg.stateHome}/caelestia/theme` | Directory containing generated GTK files |
@@ -201,29 +225,37 @@ programs.caelestia-extras.gtk.directLaunch."org.gnome.Nautilus" = {
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `hyprtoolkit.enable` | `false` | Install the Caelestia template and copy its generated config when it changes |
+| `hyprtoolkit.enable` | `autoEnable` | Install the Caelestia template and copy its generated config when it changes |
 | `hyprtoolkit.themeDir` | `${config.xdg.stateHome}/caelestia/theme` | Directory containing generated `hyprtoolkit.conf` |
 | `hyprtoolkit.configFile` | `${config.xdg.configHome}/hypr/hyprtoolkit.conf` | Active Hyprtoolkit config destination |
-| `pavucontrol.enable` | `false` | Install the themed pavucontrol desktop entry and TOML section |
+| `imv.enable` | `autoEnable` | Install the generated imv theme as imv's active configuration |
+| `imv.themeDir` | `${config.xdg.stateHome}/caelestia/theme` | Directory containing generated `imv.conf` |
+| `mpv.enable` | `false` | Install the generated ModernZ theme after checking the final MPV package |
+| `mpv.themeDir` | `${config.xdg.stateHome}/caelestia/theme` | Directory containing generated `modernz.conf` |
+| `pavucontrol.enable` | `autoEnable` | Install the themed pavucontrol desktop entry and TOML section |
 | `pavucontrol.command` | `"pavucontrol-qt"` | Command launched by `caelestia-extras pavucontrol` |
-| `localsend.enable` | `false` | Install a LocalSend wrapper whose GTK host window uses the named GTK 3 theme |
+| `localsend.enable` | `autoEnable` | Install a LocalSend wrapper whose GTK host window uses the named GTK 3 theme |
 | `localsend.package` | `pkgs.localsend` | LocalSend package to wrap |
-| `prismlauncher.enable` | `false` | Install the generated PrismLauncher theme |
+| `prismlauncher.enable` | `autoEnable` | Install the generated PrismLauncher theme |
 | `prismlauncher.themeDir` | `${config.xdg.stateHome}/caelestia/theme` | Directory containing generated PrismLauncher files |
 | `prismlauncher.themeName` | `"caelestia-breeze"` | Directory name under PrismLauncher's custom themes |
-| `qbittorrent.enable` | `false` | Enable qBittorrent preference sync and install its scoped desktop entry |
+| `qbittorrent.enable` | `autoEnable` | Enable qBittorrent preference sync and install its scoped desktop entry |
 | `qbittorrent.command` | `"qbittorrent"` | Executable used by the desktop-entry wrapper |
 | `qbittorrent.configFile` | `${config.xdg.configHome}/qBittorrent/qBittorrent.conf` | Preferences file updated by the sync |
 
 `localsend.enable` requires `gtk.enable`. LocalSend is installed from
-`localsend.package`; the pavucontrol, qBittorrent, and PrismLauncher flags do
-not install those applications.
+`localsend.package`; the imv, MPV, pavucontrol, qBittorrent, and PrismLauncher
+flags do not install those applications. `mpv.enable` also requires
+`programs.mpv.enable` and a final MPV package containing ModernZ. The imv
+integration owns its complete `imv/config` file because imv does not support
+including a generated theme fragment; do not also set `programs.imv.settings`
+or manage that path elsewhere.
 
 ### Qt
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `qt.enable` | `false` | Enable the shared Qt 5/6 palette and Breeze configuration |
+| `qt.enable` | `autoEnable` | Enable the shared Qt 5/6 palette and Breeze configuration |
 | `qt.themeDir` | `${config.xdg.stateHome}/caelestia/theme` | Directory containing the generated palette and Breeze colour scheme |
 | `qt.configHome` | `config.xdg.configHome` | Base configuration directory used by qt5ct and qt6ct |
 | `qt.dataHome` | `config.xdg.dataHome` | Base data directory for the generated KDE colour scheme |
@@ -237,13 +269,13 @@ plugin is not supplied by the pinned Nixpkgs package set.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `portal.enable` | `false` | Enable isolated GTK and Qt themes for the portal backends |
+| `portal.enable` | `autoEnable` | Enable isolated GTK and Qt themes for the portal backends |
 | `portal.themeDir` | `${config.xdg.stateHome}/caelestia/theme` | Directory containing generated portal theme files |
 | `portal.configHome` | `config.xdg.configHome` | Base directory for portal-specific qt6ct configuration |
 | `portal.dataHome` | `config.xdg.dataHome` | Base directory for the private GTK portal theme |
-| `portal.themeName` | `"Caelestia-Portal"` | GTK theme name assigned only to `xdg-desktop-portal-gtk` |
+| `portal.themeName` | `"Caelestia-Portal"` | GTK theme name assigned only to the GTK and GNOME portal services |
 | `portal.iconTheme` | `"Papirus-Dark"` | Icon theme used by the portal file choosers |
 
-This option configures existing `xdg-desktop-portal-gtk` and
-`xdg-desktop-portal-hyprland` services. It does not install or select the
-portal backends themselves.
+This option configures existing `xdg-desktop-portal-gtk`,
+`xdg-desktop-portal-gnome`, and `xdg-desktop-portal-hyprland` services. It does
+not install or select the portal backends themselves.

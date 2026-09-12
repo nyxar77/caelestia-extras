@@ -96,13 +96,25 @@ func SyncAll(configuration config.Config, includeXCursor, reloadPortals bool) er
 }
 
 func reloadPortalServices() error {
-	command := exec.Command(
-		"systemctl", "--user", "try-restart", "--no-block",
+	services := []string{
 		"xdg-desktop-portal-gtk.service",
+		"xdg-desktop-portal-gnome.service",
 		"xdg-desktop-portal-hyprland.service",
-	)
-	if output, err := command.CombinedOutput(); err != nil {
-		return fmt.Errorf("reload portal services: %w: %s", err, output)
+	}
+	for _, service := range services {
+		loadState, err := exec.Command(
+			"systemctl", "--user", "show", "--property=LoadState", "--value", service,
+		).CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("inspect portal service %s: %w: %s", service, err, loadState)
+		}
+		if strings.TrimSpace(string(loadState)) == "not-found" {
+			continue
+		}
+		command := exec.Command("systemctl", "--user", "try-restart", "--no-block", service)
+		if output, err := command.CombinedOutput(); err != nil {
+			return fmt.Errorf("reload portal service %s: %w: %s", service, err, output)
+		}
 	}
 	return nil
 }

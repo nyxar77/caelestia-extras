@@ -111,6 +111,31 @@ nothing.
 LocalSend's Flutter content keeps using its own system colour mode. The wrapper
 only themes the native Linux title bar and requires the GTK integration.
 
+### imv (Home Manager and manual installer)
+
+- `programs.caelestia-extras.imv.enable` — install the generated imv theme.
+  Defaults to `programs.caelestia-extras.autoEnable`.
+- `programs.caelestia-extras.imv.themeDir` — generated theme directory.
+  Default: `$XDG_STATE_HOME/caelestia/theme`.
+
+The generated configuration sets imv's canvas, overlay text, and overlay
+background colours. imv has no config include mechanism, so the integration
+owns `$XDG_CONFIG_HOME/imv/config` rather than adding a fragment to an existing
+file. The manual installer preserves an existing user-owned file.
+
+### MPV with ModernZ (Home Manager only)
+
+- `programs.caelestia-extras.mpv.enable` — install the generated ModernZ theme.
+  Default: `false`.
+- `programs.caelestia-extras.mpv.themeDir` — generated theme directory.
+  Default: `$XDG_STATE_HOME/caelestia/theme`.
+
+This integration links the rendered `modernz.conf` into MPV's `script-opts`
+directory. It requires `programs.mpv.enable` and verifies that
+`programs.mpv.finalPackage` actually loads `modernz.lua`. Add
+`pkgs.mpvScripts.modernz` through `programs.mpv.scripts` or through the `scripts`
+argument of a custom MPV package override.
+
 ### `[qt]`
 
 - `theme_dir` — generated palette and Breeze colour-scheme directory. Default:
@@ -147,7 +172,7 @@ the permissions of an existing regular file and refuses to replace a symlink.
 - `data_home` — XDG data directory. Default: `$XDG_DATA_HOME`.
 - `theme_name` — private GTK theme name. Default: `Caelestia-Portal`.
 
-An aggregate `sync` restarts the GTK and Hyprland portal user services after
+An aggregate `sync` restarts the GTK, GNOME, and Hyprland portal user services after
 copying the generated files. `config validate` therefore requires `systemctl`
 when this section is enabled. The direct `portal sync` command only copies the
 files.

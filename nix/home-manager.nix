@@ -8,9 +8,30 @@ let
   cfg = config.programs.caelestia-extras;
   toml = pkgs.formats.toml { };
   defaultPackage = pkgs.callPackage ./package.nix { };
+  mkIntegrationEnableOption =
+    description:
+    lib.mkOption {
+      type = lib.types.bool;
+      default = cfg.autoEnable;
+      defaultText = lib.literalExpression "config.programs.caelestia-extras.autoEnable";
+      description = "Whether to enable ${description}.";
+    };
   bibataSource = pkgs.runCommand "bibata-cursor-source" { } ''
     cp -r ${pkgs.bibata-cursors.src} "$out"
   '';
+  modernzTemplate =
+    pkgs.runCommand "caelestia-modernz.conf" { nativeBuildInputs = [ pkgs.gnugrep ]; }
+      ''
+        mpv=${lib.escapeShellArg (lib.getExe config.programs.mpv.finalPackage)}
+        script_name=${lib.escapeShellArg pkgs.mpvScripts.modernz.scriptName}
+        if [ ! -e "${config.programs.mpv.finalPackage}/share/mpv/scripts/$script_name" ] \
+          && ! grep --binary-files=text --fixed-strings --quiet "/share/mpv/scripts/$script_name" "$mpv"; then
+          echo >&2 "programs.caelestia-extras.mpv requires ModernZ in programs.mpv.finalPackage"
+          echo >&2 "Add pkgs.mpvScripts.modernz to programs.mpv.scripts or to the scripts used by programs.mpv.package."
+          exit 1
+        fi
+        cp ${../assets/manual/templates/modernz.conf} "$out"
+      '';
   configFile = toml.generate "caelestia-extras.toml" (
     {
       compositor.backend = cfg.compositor.backend;
@@ -130,6 +151,14 @@ in
 
   options.programs.caelestia-extras = {
     enable = lib.mkEnableOption "optional Caelestia integrations";
+    autoEnable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether to enable integrations by default. An integration's explicit
+        enable value takes precedence, so individual integrations can opt out.
+      '';
+    };
     package = lib.mkOption {
       type = lib.types.package;
       default = defaultPackage;
@@ -170,7 +199,7 @@ in
       description = "Path to Caelestia's active scheme JSON file.";
     };
     cursor = {
-      enable = lib.mkEnableOption "dynamic Bibata cursor";
+      enable = mkIntegrationEnableOption "the dynamic Bibata cursor integration";
       source = lib.mkOption {
         type = lib.types.str;
         default = "${bibataSource}/svg/modern";
@@ -217,7 +246,7 @@ in
       };
     };
     gtk = {
-      enable = lib.mkEnableOption "Caelestia GTK preference sync";
+      enable = mkIntegrationEnableOption "Caelestia GTK preference sync";
       darkTheme = lib.mkOption {
         type = lib.types.str;
         default = "adw-gtk3-dark";
@@ -298,7 +327,7 @@ in
       };
     };
     hyprtoolkit = {
-      enable = lib.mkEnableOption "Caelestia-generated Hyprtoolkit configuration";
+      enable = mkIntegrationEnableOption "the Caelestia-generated Hyprtoolkit configuration";
       themeDir = lib.mkOption {
         type = lib.types.str;
         default = "${config.xdg.stateHome}/caelestia/theme";
@@ -310,8 +339,24 @@ in
         description = "Destination for Hyprtoolkit's active configuration.";
       };
     };
+    imv = {
+      enable = mkIntegrationEnableOption "the Caelestia-generated imv theme";
+      themeDir = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.xdg.stateHome}/caelestia/theme";
+        description = "Directory containing the generated imv configuration.";
+      };
+    };
+    mpv = {
+      enable = lib.mkEnableOption "Caelestia-generated ModernZ theme for MPV";
+      themeDir = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.xdg.stateHome}/caelestia/theme";
+        description = "Directory containing the generated ModernZ configuration.";
+      };
+    };
     pavucontrol = {
-      enable = lib.mkEnableOption "Caelestia-themed pavucontrol-qt launcher";
+      enable = mkIntegrationEnableOption "the Caelestia-themed pavucontrol-qt launcher";
       command = lib.mkOption {
         type = lib.types.str;
         default = "pavucontrol-qt";
@@ -319,7 +364,7 @@ in
       };
     };
     localsend = {
-      enable = lib.mkEnableOption "Caelestia-themed GTK host window for LocalSend";
+      enable = mkIntegrationEnableOption "the Caelestia-themed GTK host window for LocalSend";
       package = lib.mkOption {
         type = lib.types.package;
         default = pkgs.localsend;
@@ -328,7 +373,7 @@ in
       };
     };
     qt = {
-      enable = lib.mkEnableOption "shared Caelestia Qt theming";
+      enable = mkIntegrationEnableOption "shared Caelestia Qt theming";
       themeDir = lib.mkOption {
         type = lib.types.str;
         default = "${config.xdg.stateHome}/caelestia/theme";
@@ -351,7 +396,7 @@ in
       };
     };
     prismlauncher = {
-      enable = lib.mkEnableOption "Caelestia PrismLauncher theme";
+      enable = mkIntegrationEnableOption "the Caelestia PrismLauncher theme";
       themeDir = lib.mkOption {
         type = lib.types.str;
         default = "${config.xdg.stateHome}/caelestia/theme";
@@ -364,7 +409,7 @@ in
       };
     };
     qbittorrent = {
-      enable = lib.mkEnableOption "native Breeze integration for qBittorrent";
+      enable = mkIntegrationEnableOption "the native Breeze integration for qBittorrent";
       command = lib.mkOption {
         type = lib.types.str;
         default = "qbittorrent";
@@ -377,7 +422,7 @@ in
       };
     };
     portal = {
-      enable = lib.mkEnableOption "Caelestia-themed XDG desktop portals";
+      enable = mkIntegrationEnableOption "Caelestia-themed XDG desktop portals";
       themeDir = lib.mkOption {
         type = lib.types.str;
         default = "${config.xdg.stateHome}/caelestia/theme";
@@ -396,7 +441,7 @@ in
       themeName = lib.mkOption {
         type = lib.types.str;
         default = "Caelestia-Portal";
-        description = "GTK theme name exposed exclusively to xdg-desktop-portal-gtk.";
+        description = "GTK theme name exposed exclusively to the GTK and GNOME portal services.";
       };
       iconTheme = lib.mkOption {
         type = lib.types.str;
@@ -411,6 +456,10 @@ in
       {
         assertion = !cfg.localsend.enable || cfg.gtk.enable;
         message = "programs.caelestia-extras.localsend requires programs.caelestia-extras.gtk";
+      }
+      {
+        assertion = !cfg.mpv.enable || config.programs.mpv.enable;
+        message = "programs.caelestia-extras.mpv requires programs.mpv.enable";
       }
     ];
     warnings = lib.optional (cfg.systemd.enable && !watchEnabled) ''
@@ -470,6 +519,15 @@ in
       }
       // lib.optionalAttrs cfg.pavucontrol.enable {
         "caelestia/templates/pavucontrol-qt.qss".source = ../assets/manual/templates/pavucontrol-qt.qss;
+      }
+      // lib.optionalAttrs cfg.imv.enable {
+        "caelestia/templates/imv.conf".source = ../assets/manual/templates/imv.conf;
+        "imv/config".source = config.lib.file.mkOutOfStoreSymlink "${cfg.imv.themeDir}/imv.conf";
+      }
+      // lib.optionalAttrs cfg.mpv.enable {
+        "caelestia/templates/modernz.conf".source = modernzTemplate;
+        "mpv/script-opts/modernz.conf".source =
+          config.lib.file.mkOutOfStoreSymlink "${cfg.mpv.themeDir}/modernz.conf";
       }
       // lib.optionalAttrs cfg.prismlauncher.enable {
         "caelestia/templates/prismlauncher.json".source = ../assets/manual/templates/prismlauncher.json;

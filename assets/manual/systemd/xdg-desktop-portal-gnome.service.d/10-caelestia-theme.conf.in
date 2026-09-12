@@ -1,0 +1,2 @@
+[Service]
+Environment=GTK_THEME=@PORTAL_THEME_NAME@

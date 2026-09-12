@@ -55,6 +55,29 @@ active Hyprtoolkit config path.
 `pavucontrol` launches the configured `pavucontrol-qt` command. If Caelestia
 generated a stylesheet, it is passed to the application.
 
+## imv
+
+Enabling `imv` installs a generated configuration at
+`$XDG_CONFIG_HOME/imv/config`. It colours every role exposed by imv: the image
+canvas uses `surface`, overlay text uses `onSurface`, and the overlay background
+uses `surfaceContainerLowest`. Reopen imv after a scheme change so it reads the
+new colours.
+
+imv does not support config includes, so this integration owns the complete
+config file. Its command-entry bar is still black and white because imv
+hard-codes those colours and exposes no setting for them.
+
+## MPV and ModernZ
+
+Enabling `mpv` installs a Caelestia template for ModernZ and links the rendered
+file to `$XDG_CONFIG_HOME/mpv/script-opts/modernz.conf`. MPV reads the new
+colours the next time it starts.
+
+This integration does not install MPV or ModernZ. Under Home Manager it checks
+`programs.mpv.finalPackage`, so ModernZ must be loaded by the final MPV wrapper.
+Use `programs.mpv.scripts = [ pkgs.mpvScripts.modernz ]`, or include ModernZ in
+the `scripts` argument of a custom `programs.mpv.package` override.
+
 ## LocalSend
 
 LocalSend draws its main interface with Flutter but uses GTK for the native
@@ -95,14 +118,15 @@ global Qt palette.
 ## XDG portals
 
 `portal sync` copies the generated GTK theme and Qt palette into portal-specific
-locations. The Qt screencast picker uses Breeze directly; no portal-wide
+locations. GTK and GNOME portal services share the isolated GTK theme. The Qt
+screencast picker uses Breeze directly; no portal-wide
 stylesheet overrides its native tab panes, frames, or interaction states. The
 Home Manager module also installs the service drop-ins needed to keep the
 portal processes isolated from the global Qt and GTK settings.
 
-The GTK portal remains isolated under its own theme name. It does not write to
-normal applications' GTK configuration; the GTK integration owns the safe
-global colour-token layer.
+The GTK and GNOME portals remain isolated under their own theme name. They do
+not write to normal applications' GTK configuration; the GTK integration owns
+the safe global colour-token layer.
 
 ## Home Manager and systemd
 

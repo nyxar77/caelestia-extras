@@ -183,7 +183,7 @@ else
   create_config=false
 fi
 
-for template in gtk-portal.css gtk.css gtk4.css gtk3-adwaita.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
+for template in gtk-portal.css gtk.css gtk4.css gtk3-adwaita.css imv.conf pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
   stage_managed \
     "$repo_dir/assets/manual/templates/$template" \
     "templates/$template"
@@ -212,7 +212,7 @@ done
 stage_managed \
   "$repo_dir/assets/manual/environment.d/10-caelestia-qt.conf" \
   "environment.d/10-caelestia-qt.conf"
-for dropin in xdg-desktop-portal-gtk.service.d/10-caelestia-theme.conf xdg-desktop-portal-hyprland.service.d/10-caelestia-theme.conf; do
+for dropin in xdg-desktop-portal-gtk.service.d/10-caelestia-theme.conf xdg-desktop-portal-gnome.service.d/10-caelestia-theme.conf xdg-desktop-portal-hyprland.service.d/10-caelestia-theme.conf; do
   render_staged \
     "$repo_dir/assets/manual/systemd/$dropin.in" \
     "systemd/$dropin"
@@ -236,11 +236,14 @@ else
   printf 'keeping user config: %s\n' "$config_file"
 fi
 
-for template in gtk-portal.css gtk.css gtk4.css gtk3-adwaita.css pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
+for template in gtk-portal.css gtk.css gtk4.css gtk3-adwaita.css imv.conf pavucontrol-qt.qss prismlauncher.json qt-caelestia.conf breeze-caelestia.colors; do
   commit_managed \
     "templates/$template" \
     "$config_home/caelestia/templates/$template"
 done
+link_managed \
+  "$theme_dir/imv.conf" \
+  "$config_home/imv/config"
 link_managed \
   "$theme_dir/gtk.css" \
   "$config_home/gtk-3.0/gtk.css"
@@ -282,7 +285,7 @@ done
 commit_managed \
   "portal-qt/qt6ct/qt6ct.conf" \
   "$config_home/portal-qt/qt6ct/qt6ct.conf"
-for dropin in xdg-desktop-portal-gtk.service.d/10-caelestia-theme.conf xdg-desktop-portal-hyprland.service.d/10-caelestia-theme.conf; do
+for dropin in xdg-desktop-portal-gtk.service.d/10-caelestia-theme.conf xdg-desktop-portal-gnome.service.d/10-caelestia-theme.conf xdg-desktop-portal-hyprland.service.d/10-caelestia-theme.conf; do
   commit_managed \
     "systemd/$dropin" \
     "$config_home/systemd/user/$dropin"

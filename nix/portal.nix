@@ -46,6 +46,11 @@ in
         Environment=GTK_THEME=${cfg.themeName}
       '';
 
+      "systemd/user/xdg-desktop-portal-gnome.service.d/10-caelestia-theme.conf".text = ''
+        [Service]
+        Environment=GTK_THEME=${cfg.themeName}
+      '';
+
       "systemd/user/xdg-desktop-portal-hyprland.service.d/10-caelestia-theme.conf".text = ''
         [Service]
         Environment=QT_QPA_PLATFORMTHEME=qt6ct

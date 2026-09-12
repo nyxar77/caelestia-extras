@@ -4,11 +4,48 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/nyxar77/caelestia-extras/internal/config"
 )
+
+func TestReloadPortalServicesSkipsUnavailableBackend(t *testing.T) {
+	binDir := t.TempDir()
+	logPath := filepath.Join(t.TempDir(), "systemctl.log")
+	systemctl := filepath.Join(binDir, "systemctl")
+	write(t, systemctl, `#!/bin/sh
+set -eu
+printf '%s\n' "$*" >> "$TEST_SYSTEMCTL_LOG"
+case "$*" in
+  *show*xdg-desktop-portal-gnome.service*) printf '%s\n' not-found ;;
+  *show*) printf '%s\n' loaded ;;
+esac
+`)
+	if err := os.Chmod(systemctl, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv("TEST_SYSTEMCTL_LOG", logPath)
+
+	if err := reloadPortalServices(); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	log := string(data)
+	if strings.Contains(log, "try-restart --no-block xdg-desktop-portal-gnome.service") {
+		t.Fatalf("unavailable GNOME backend was restarted:\n%s", log)
+	}
+	for _, service := range []string{"xdg-desktop-portal-gtk.service", "xdg-desktop-portal-hyprland.service"} {
+		if !strings.Contains(log, "try-restart --no-block "+service) {
+			t.Fatalf("available backend %s was not restarted:\n%s", service, log)
+		}
+	}
+}
 
 func write(t *testing.T, path, content string) {
 	t.Helper()

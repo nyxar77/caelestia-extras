@@ -33,6 +33,11 @@ Managed templates, portal files, and systemd units are stored under
 directory. Rerunning the script updates managed files. If you replace a managed
 symlink with your own file, the script leaves your file alone.
 
+The installer links Caelestia's generated `imv.conf` to
+`$XDG_CONFIG_HOME/imv/config`. Since imv has no config include directive, this
+is the complete imv configuration. An existing file is preserved instead of
+being overwritten.
+
 The GTK 3 and GTK 4 user stylesheets are symlinked directly to Caelestia's
 generated `gtk.css` and `gtk4.css`, respectively. Existing user stylesheets are
 preserved instead of being overwritten.
@@ -92,7 +97,7 @@ applications so they receive the Qt5/Qt6 platform theme.
 The script respects `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, and
 `XDG_BIN_HOME`. The watcher reads source paths from `config.toml`.
 
-`CAELESTIA_EXTRAS_THEME_DIR` is needed only when the manual PrismLauncher
+`CAELESTIA_EXTRAS_THEME_DIR` is needed when the manual imv or PrismLauncher
 symlink uses a non-default generated-theme directory:
 
 ```sh

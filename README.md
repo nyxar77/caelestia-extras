@@ -15,12 +15,14 @@ the supplied service expects a systemd user session.
 | Cursor | Builds and applies a recoloured Bibata Hyprcursor theme, with an optional XCursor fallback |
 | GTK | Updates the light/dark preference and GTK theme; installs Caelestia colour stylesheets |
 | Hyprtoolkit | Copies Caelestia's generated Hyprtoolkit configuration into place |
+| [imv](https://sr.ht/~exec64/imv/) | Colours the image canvas and information overlay from Caelestia's generated palette |
+| MPV | Colours the ModernZ on-screen controller from Caelestia's generated palette |
 | Qt | Updates qt5ct, qt6ct, KDE/Breeze colours, and the Qt session environment |
 | pavucontrol | Provides a `pavucontrol-qt` launcher using the generated stylesheet |
 | qBittorrent | Restores native Qt/Breeze theming and provides a scoped launcher under Home Manager |
 | PrismLauncher | Installs Caelestia's generated PrismLauncher theme under Home Manager or the manual installer |
 | LocalSend | Wraps LocalSend's GTK host window with the generated GTK 3 theme under Home Manager |
-| XDG portals | Gives the GTK file chooser and Hyprland screencast picker isolated GTK/Qt themes |
+| XDG portals | Gives GTK/GNOME choosers and the Hyprland screencast picker isolated GTK/Qt themes |
 
 See [Integrations](docs/integrations.md) for the exact files and settings each
 integration owns.
@@ -45,23 +47,20 @@ Add the flake input and import its module:
 
   programs.caelestia-extras = {
     enable = true;
+    autoEnable = true;
 
-    cursor.enable = true;
-    gtk.enable = true;
-    hyprtoolkit.enable = true;
-    localsend.enable = true;
-    pavucontrol.enable = true;
-    qt.enable = true;
-    prismlauncher.enable = true;
-    qbittorrent.enable = true;
-    portal.enable = true;
+    # Optional per-integration opt-out:
+    # localsend.enable = false;
   };
 }
 ```
 
-Every integration is optional. Enable only the parts you use. LocalSend
-requires the GTK integration; pavucontrol, qBittorrent, and PrismLauncher are
-not installed by their integration flags.
+`autoEnable` defaults to `true`. Every integration inherits it, and an explicit
+`integration.enable` value wins, so set unwanted integrations to `false`. Set
+`autoEnable = false` to return to an opt-in list instead. The MPV integration is
+opt-in because it requires ModernZ. LocalSend requires the GTK integration;
+imv, MPV, pavucontrol, qBittorrent, and PrismLauncher are not installed by their
+integration flags.
 
 If Caelestia's own Home Manager module manages the CLI, disable its built-in
 GTK writer before enabling `gtk` here:
