@@ -12,14 +12,16 @@ let
   qtPluginPath = "${qt5ct}/lib/qt-5/plugins:${qt6ct}/lib/qt-6/plugins:${breeze}/lib/qt-6/plugins";
   qtEnvironment = {
     QT_PLUGIN_PATH = qtPluginPath;
-    QT_QPA_PLATFORMTHEME = "qt5ct:qt6ct";
+    # qt6ct's Qt 6 plugin also advertises the qt5ct compatibility key, so one
+    # value selects the matching configuration tool for both Qt generations.
+    QT_QPA_PLATFORMTHEME = "qt5ct";
   };
   qtConfig = version: ''
     [Appearance]
     color_scheme_path=${cfg.configHome}/${version}/colors/caelestia.conf
     custom_palette=true
     icon_theme=${cfg.iconTheme}
-    style=${if version == "qt6ct" then "Breeze" else "Fusion"}
+    style=${if version == "qt6ct" then cfg.widgetStyle else "Fusion"}
   '';
 in
 {
@@ -35,17 +37,17 @@ in
         if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
           ${pkgs.systemd}/bin/systemctl --user set-environment \
             QT_PLUGIN_PATH=${lib.escapeShellArg qtPluginPath} \
-            QT_QPA_PLATFORMTHEME=qt5ct:qt6ct
+            QT_QPA_PLATFORMTHEME=qt5ct
           ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd \
             QT_PLUGIN_PATH=${lib.escapeShellArg qtPluginPath} \
-            QT_QPA_PLATFORMTHEME=qt5ct:qt6ct
+            QT_QPA_PLATFORMTHEME=qt5ct
         fi
       '';
     };
     xdg.configFile = {
       "environment.d/10-caelestia-qt.conf".text = ''
         QT_PLUGIN_PATH=${qtPluginPath}
-        QT_QPA_PLATFORMTHEME=qt5ct:qt6ct
+        QT_QPA_PLATFORMTHEME=qt5ct
       '';
       "qt5ct/qt5ct.conf".text = qtConfig "qt5ct";
       "qt6ct/qt6ct.conf".text = qtConfig "qt6ct";

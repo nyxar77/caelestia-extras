@@ -68,6 +68,9 @@ func SyncAll(configuration config.Config, includeXCursor, reloadPortals bool) er
 			return nil
 		}})
 	}
+	if configuration.Bloom != nil {
+		jobs = append(jobs, syncJob{"Bloom", func() error { return SyncBloom(*configuration.Bloom, configuration.Scheme.File) }})
+	}
 
 	errorsChannel := make(chan error, len(jobs))
 	var group sync.WaitGroup
@@ -247,7 +250,7 @@ func watchedFiles(configuration config.Config) []string {
 			files = append(files, path)
 		}
 	}
-	if configuration.Cursor != nil || configuration.GTK != nil {
+	if configuration.Cursor != nil || configuration.GTK != nil || configuration.Bloom != nil {
 		add(configuration.Scheme.File)
 	}
 	if configuration.Hyprtoolkit != nil {
@@ -347,6 +350,43 @@ func SyncHyprtoolkit(hyprtoolkit config.Hyprtoolkit) error {
 	return copyFile(source, hyprtoolkit.ConfigFile)
 }
 
+// SyncBloom writes the Spicetify Bloom theme palette using Caelestia's
+// Material palette. Bloom reads this file when Spicetify applies the theme.
+func SyncBloom(bloom config.Bloom, schemeFile string) error {
+	active, err := scheme.Read(schemeFile)
+	if err != nil {
+		return err
+	}
+	roles := map[string]string{
+		"text":               active.Color("onSurface"),
+		"subtext":            active.Color("onSurfaceVariant"),
+		"main":               active.Color("surface"),
+		"sidebar":            active.Color("surfaceContainerLowest"),
+		"player":             active.Color("surfaceContainer"),
+		"card":               active.Color("surfaceContainerHigh"),
+		"main-elevated":      active.Color("surfaceContainerHigh"),
+		"highlight-elevated": active.Color("surfaceContainerHighest"),
+		"highlight":          active.Color("primaryContainer"),
+		"selected-row":       active.Color("primary"),
+		"button":             active.Color("primary"),
+		"button-active":      active.Color("primary"),
+		"button-disabled":    active.Color("surfaceVariant"),
+		"notification":       active.Color("secondary"),
+		"notification-error": active.Color("error"),
+		"misc":               active.Color("tertiary"),
+		"shadow":             active.Color("shadow"),
+		"tab-active":         active.Color("surfaceContainerHighest"),
+	}
+	var output strings.Builder
+	output.WriteString("[Bloom]\n")
+	for _, key := range []string{"text", "subtext", "main", "sidebar", "player", "card", "main-elevated", "highlight-elevated", "highlight", "selected-row", "button", "button-active", "button-disabled", "notification", "notification-error", "misc", "shadow", "tab-active"} {
+		if value := roles[key]; value != "" {
+			output.WriteString(key + " = " + value + "\n")
+		}
+	}
+	return writeGeneratedFile(filepath.Join(bloom.ThemeDir, "color.ini"), []byte(output.String()))
+}
+
 func LaunchPavucontrol(pavucontrol config.Pavucontrol, arguments []string) error {
 	if _, err := exec.LookPath(pavucontrol.Command); err != nil {
 		return fmt.Errorf("find command %q: %w", pavucontrol.Command, err)
@@ -393,12 +433,22 @@ func SyncQt(qt config.Qt) error {
 	if err := copyFile(colourScheme, filepath.Join(qt.DataHome, "color-schemes", "Caelestia.colors")); err != nil {
 		return err
 	}
-	return setKDEColourScheme(filepath.Join(qt.ConfigHome, "kdeglobals"), "Caelestia")
+	widgetStyle := qt.WidgetStyle
+	if widgetStyle == "" {
+		widgetStyle = "Breeze"
+	}
+	iconTheme := qt.IconTheme
+	if iconTheme == "" {
+		iconTheme = "Papirus-Dark"
+	}
+	return setKDEAppearance(filepath.Join(qt.ConfigHome, "kdeglobals"), "Caelestia", widgetStyle, iconTheme)
 }
 
-// setKDEColourScheme changes only the active colour scheme and keeps unrelated
-// KDE settings intact. Breeze uses this file when resolving its colour scheme.
-func setKDEColourScheme(path, name string) error {
+// setKDEAppearance gives KDE Frameworks applications the same palette, widget
+// style, and icon theme as qt6ct while keeping unrelated KDE settings intact.
+// KDE platform integration reads General, while KColorSchemeManager-based
+// applications read UiSettings.
+func setKDEAppearance(path, colourScheme, widgetStyle, iconTheme string) error {
 	data, err := os.ReadFile(path)
 	if err != nil && !os.IsNotExist(err) {
 		return err
@@ -408,9 +458,20 @@ func setKDEColourScheme(path, name string) error {
 	if len(lines) == 1 && lines[0] == "" {
 		lines = nil
 	}
+	lines = setKDEConfigEntry(lines, "General", "ColorScheme", colourScheme)
+	lines = setKDEConfigEntry(lines, "UiSettings", "ColorScheme", colourScheme)
+	lines = setKDEConfigEntry(lines, "KDE", "widgetStyle", widgetStyle)
+	lines = setKDEConfigEntry(lines, "Icons", "Theme", iconTheme)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(path, []byte(strings.Join(lines, "\n")+"\n"), 0o644)
+}
+
+func setKDEConfigEntry(lines []string, group, key, value string) []string {
 	start, end := -1, len(lines)
 	for index, line := range lines {
-		if strings.TrimSpace(line) != "[General]" {
+		if strings.TrimSpace(line) != "["+group+"]" {
 			continue
 		}
 		start = index
@@ -426,12 +487,12 @@ func setKDEColourScheme(path, name string) error {
 		if len(lines) > 0 {
 			lines = append(lines, "")
 		}
-		lines = append(lines, "[General]", "ColorScheme="+name)
+		lines = append(lines, "["+group+"]", key+"="+value)
 	} else {
 		updated := false
 		for index := start + 1; index < end; index++ {
-			if strings.HasPrefix(strings.TrimSpace(lines[index]), "ColorScheme=") {
-				lines[index] = "ColorScheme=" + name
+			if strings.HasPrefix(strings.TrimSpace(lines[index]), key+"=") {
+				lines[index] = key + "=" + value
 				updated = true
 				break
 			}
@@ -441,13 +502,10 @@ func setKDEColourScheme(path, name string) error {
 			for insertAt > start+1 && strings.TrimSpace(lines[insertAt-1]) == "" {
 				insertAt--
 			}
-			lines = append(lines[:insertAt], append([]string{"ColorScheme=" + name}, lines[insertAt:]...)...)
+			lines = append(lines[:insertAt], append([]string{key + "=" + value}, lines[insertAt:]...)...)
 		}
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	return os.WriteFile(path, []byte(strings.Join(lines, "\n")+"\n"), 0o644)
+	return lines
 }
 
 func SyncQBittorrent(qbittorrent config.QBittorrent) error {
@@ -603,6 +661,33 @@ func copyFile(source, destination string) error {
 		return err
 	}
 	if current, readErr := os.ReadFile(destination); readErr == nil && bytes.Equal(current, data) {
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
+		return err
+	}
+	file, err := os.CreateTemp(filepath.Dir(destination), ".caelestia-extras.")
+	if err != nil {
+		return err
+	}
+	temporary := file.Name()
+	defer os.Remove(temporary)
+	if err := file.Chmod(0o644); err != nil {
+		file.Close()
+		return err
+	}
+	if _, err := file.Write(data); err != nil {
+		file.Close()
+		return err
+	}
+	if err := file.Close(); err != nil {
+		return err
+	}
+	return os.Rename(temporary, destination)
+}
+
+func writeGeneratedFile(destination string, data []byte) error {
+	if current, err := os.ReadFile(destination); err == nil && bytes.Equal(current, data) {
 		return nil
 	}
 	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {

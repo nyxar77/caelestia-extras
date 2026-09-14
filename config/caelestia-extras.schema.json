@@ -84,7 +84,9 @@
       "properties": {
         "theme_dir": {"type": "string", "description": "Directory containing generated Qt palette and Breeze colour-scheme files."},
         "config_home": {"type": "string", "description": "XDG configuration directory used by qt5ct and qt6ct."},
-        "data_home": {"type": "string", "description": "XDG data directory used for the generated Breeze colour scheme."}
+        "data_home": {"type": "string", "description": "XDG data directory used for the generated Breeze colour scheme."},
+        "widget_style": {"type": "string", "default": "Breeze", "description": "Qt widget style selected for KDE Frameworks applications."},
+        "icon_theme": {"type": "string", "default": "Papirus-Dark", "description": "Icon theme selected for Qt and KDE Frameworks applications."}
       }
     },
     "qbittorrent": {
@@ -105,6 +107,14 @@
         "config_home": {"type": "string", "description": "XDG configuration directory containing the portal-specific qt6ct tree."},
         "data_home": {"type": "string", "description": "XDG data directory containing the private GTK portal theme."},
         "theme_name": {"type": "string", "default": "Caelestia-Portal", "description": "Private GTK theme name assigned to xdg-desktop-portal-gtk."}
+      }
+    },
+    "bloom": {
+      "type": "object",
+      "description": "Generate a Caelestia palette for the Spicetify Bloom theme.",
+      "additionalProperties": false,
+      "properties": {
+        "theme_dir": {"type": "string", "description": "Spicetify Bloom theme directory containing color.ini."}
       }
     }
   }

@@ -89,8 +89,9 @@ The initial sync restarts the portal backends so their scoped GTK and Qt themes
 take effect immediately.
 
 The `qt` integration also writes an `environment.d` file and a generated
-Caelestia KDE colour scheme. Log out and back in before launching Qt
-applications so they receive the Qt5/Qt6 platform theme.
+Caelestia KDE colour scheme. The single `qt5ct` platform-theme key selects the
+matching qt5ct or qt6ct plugin for each Qt generation. Log out and back in
+before launching Qt applications so they receive the platform theme.
 
 ## XDG paths
 

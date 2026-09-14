@@ -35,6 +35,8 @@ update_gtk = true
 
 [portal]
 theme_name = "Caelestia-Portal"
+
+[bloom]
 ```
 
 The `scheme.file` setting defaults to `$XDG_STATE_HOME/caelestia/scheme.json`.
@@ -57,7 +59,7 @@ state for reliable compositor detection.
 - `file` — Caelestia's active scheme JSON. Default:
   `$XDG_STATE_HOME/caelestia/scheme.json`.
 
-Cursor and GTK sync require this file. The remaining integrations consume
+Cursor, GTK, and Bloom sync require this file. The remaining integrations consume
 Caelestia's rendered template files from their `theme_dir`.
 
 ### `[cursor]`
@@ -142,9 +144,16 @@ argument of a custom MPV package override.
   `$XDG_STATE_HOME/caelestia/theme`.
 - `config_home` — XDG config directory. Default: `$XDG_CONFIG_HOME`.
 - `data_home` — XDG data directory. Default: `$XDG_DATA_HOME`.
+- `widget_style` — Qt widget style selected for KDE Frameworks applications.
+  Default: `Breeze`.
+- `icon_theme` — icon theme selected for Qt and KDE Frameworks applications.
+  Default: `Papirus-Dark`.
 
 The integration copies Caelestia's palette to qt5ct and qt6ct, installs a
-generated KDE colour scheme, and selects it in `kdeglobals`. Qt 6 uses Breeze;
+generated KDE colour scheme, and selects it for both KDE platform integration
+and KColorSchemeManager applications in `kdeglobals`. It also writes KDE's
+widget-style and icon-theme keys so applications such as Gwenview use the same
+appearance settings as other Qt applications. Qt 6 uses Breeze;
 Qt 5 keeps Fusion because this Nixpkgs revision does not ship a Qt 5 Breeze
 plugin. Home Manager configures the platform theme and plugin path.
 
@@ -176,6 +185,15 @@ An aggregate `sync` restarts the GTK, GNOME, and Hyprland portal user services a
 copying the generated files. `config validate` therefore requires `systemctl`
 when this section is enabled. The direct `portal sync` command only copies the
 files.
+
+### `[bloom]`
+
+- `theme_dir` — Spicetify Bloom theme directory. Default:
+  `$XDG_CONFIG_HOME/spicetify/Themes/Bloom`.
+
+The integration generates Bloom's `color.ini` directly from Caelestia's
+active Material palette. Run `spicetify apply` once after enabling Bloom;
+subsequent palette changes are written by the watcher.
 
 ## Validation and editor support
 

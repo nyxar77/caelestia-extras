@@ -69,6 +69,8 @@ let
         theme_dir = cfg.qt.themeDir;
         config_home = cfg.qt.configHome;
         data_home = cfg.qt.dataHome;
+        widget_style = cfg.qt.widgetStyle;
+        icon_theme = cfg.qt.iconTheme;
       };
     }
     // lib.optionalAttrs cfg.qbittorrent.enable {
@@ -84,6 +86,9 @@ let
         data_home = cfg.portal.dataHome;
         theme_name = cfg.portal.themeName;
       };
+    }
+    // lib.optionalAttrs cfg.bloom.enable {
+      bloom.theme_dir = cfg.bloom.themeDir;
     }
   );
   compositorRuntime = {
@@ -140,7 +145,12 @@ let
     '';
   };
   watchEnabled =
-    cfg.cursor.enable || cfg.gtk.enable || cfg.hyprtoolkit.enable || cfg.qt.enable || cfg.portal.enable;
+    cfg.cursor.enable
+    || cfg.gtk.enable
+    || cfg.hyprtoolkit.enable
+    || cfg.qt.enable
+    || cfg.portal.enable
+    || cfg.bloom.enable;
 in
 {
   imports = [
@@ -392,7 +402,12 @@ in
       iconTheme = lib.mkOption {
         type = lib.types.str;
         default = "Papirus-Dark";
-        description = "Icon theme used by qt5ct and qt6ct.";
+        description = "Icon theme used by qt5ct, qt6ct, and KDE Frameworks applications.";
+      };
+      widgetStyle = lib.mkOption {
+        type = lib.types.str;
+        default = "Breeze";
+        description = "Qt widget style used by qt6ct and KDE Frameworks applications.";
       };
     };
     prismlauncher = {
@@ -449,6 +464,14 @@ in
         description = "Icon theme used by GTK and Qt portal file choosers.";
       };
     };
+    bloom = {
+      enable = mkIntegrationEnableOption "the Caelestia-driven Spicetify Bloom palette";
+      themeDir = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.xdg.configHome}/spicetify/Themes/Bloom";
+        description = "Spicetify Bloom theme directory containing color.ini.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -464,7 +487,7 @@ in
     ];
     warnings = lib.optional (cfg.systemd.enable && !watchEnabled) ''
       programs.caelestia-extras.systemd.enable is true, but none of cursor,
-      gtk, hyprtoolkit, qt, or portal is enabled. The watcher service will not
+      gtk, hyprtoolkit, qt, portal, or bloom is enabled. The watcher service will not
       be created because there are no generated files to watch.
     '';
     home = {

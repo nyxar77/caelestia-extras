@@ -83,6 +83,10 @@
             autoEnable = false;
             portal.enable = true;
           };
+          homeManagerBloomTest = mkHome {
+            autoEnable = false;
+            bloom.enable = true;
+          };
           homeManagerMpvTest = home-manager.lib.homeManagerConfiguration {
             inherit pkgs;
             modules = [
@@ -127,6 +131,7 @@
             assert builtins.hasAttr "org.qbittorrent.qBittorrent" homeManagerQtTest.config.xdg.desktopEntries;
             assert builtins.hasAttr "systemd/user/xdg-desktop-portal-gnome.service.d/10-caelestia-theme.conf"
               homeManagerPortalTest.config.xdg.configFile;
+            assert builtins.hasAttr "caelestia-extras-watch" homeManagerBloomTest.config.systemd.user.services;
             assert builtins.hasAttr "mpv/script-opts/modernz.conf" homeManagerMpvTest.config.xdg.configFile;
             assert builtins.hasAttr "caelestia/templates/modernz.conf" homeManagerMpvTest.config.xdg.configFile;
             assert homeManagerMpvTest.activationPackage.drvPath != "";

@@ -128,7 +128,7 @@ not generate the same paths from another Home Manager module or from Stylix.
 | Integration | Paths or settings owned |
 | --- | --- |
 | GTK | `gtk-3.0/gtk.css`, `gtk-4.0/gtk.css`, the named GTK 3 theme, and GNOME theme settings in dconf |
-| Qt | `qt5ct/qt5ct.conf`, `qt6ct/qt6ct.conf`, `environment.d/10-caelestia-qt.conf`, Qt session variables, and `[General] ColorScheme` in `kdeglobals` |
+| Qt | `qt5ct/qt5ct.conf`, `qt6ct/qt6ct.conf`, `environment.d/10-caelestia-qt.conf`, Qt session variables, and the colour scheme, widget style, and icon theme in `kdeglobals` |
 | Portal | portal-specific qt6ct configuration and systemd drop-ins for the GTK, GNOME, and Hyprland portal services |
 | imv | `imv/config` |
 | MPV | `mpv/script-opts/modernz.conf` |
@@ -242,6 +242,8 @@ programs.caelestia-extras.gtk.directLaunch."org.gnome.Nautilus" = {
 | `qbittorrent.enable` | `autoEnable` | Enable qBittorrent preference sync and install its scoped desktop entry |
 | `qbittorrent.command` | `"qbittorrent"` | Executable used by the desktop-entry wrapper |
 | `qbittorrent.configFile` | `${config.xdg.configHome}/qBittorrent/qBittorrent.conf` | Preferences file updated by the sync |
+| `bloom.enable` | `autoEnable` | Generate Bloom's Spicetify palette and keep it synchronized |
+| `bloom.themeDir` | `${config.xdg.configHome}/spicetify/Themes/Bloom` | Bloom theme directory containing `color.ini` |
 
 `localsend.enable` requires `gtk.enable`. LocalSend is installed from
 `localsend.package`; the imv, MPV, pavucontrol, qBittorrent, and PrismLauncher
@@ -259,11 +261,13 @@ or manage that path elsewhere.
 | `qt.themeDir` | `${config.xdg.stateHome}/caelestia/theme` | Directory containing the generated palette and Breeze colour scheme |
 | `qt.configHome` | `config.xdg.configHome` | Base configuration directory used by qt5ct and qt6ct |
 | `qt.dataHome` | `config.xdg.dataHome` | Base data directory for the generated KDE colour scheme |
-| `qt.iconTheme` | `"Papirus-Dark"` | Icon theme written to qt5ct and qt6ct configuration |
+| `qt.widgetStyle` | `"Breeze"` | Widget style used by qt6ct and KDE Frameworks applications |
+| `qt.iconTheme` | `"Papirus-Dark"` | Icon theme used by qt5ct, qt6ct, and KDE Frameworks applications |
 
 The module installs qt5ct, qt6ct, and Qt 6 Breeze when this integration is
-enabled. Qt 6 uses Breeze; Qt 5 uses Fusion because the required Qt 5 Breeze
-plugin is not supplied by the pinned Nixpkgs package set.
+enabled. Qt 6 and KDE Frameworks applications use Breeze; Qt 5 uses Fusion
+because the required Qt 5 Breeze plugin is not supplied by the pinned Nixpkgs
+package set.
 
 ### XDG portals
 

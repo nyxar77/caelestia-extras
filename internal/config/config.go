@@ -22,6 +22,7 @@ type Config struct {
 	Qt          *Qt          `toml:"qt"`
 	QBittorrent *QBittorrent `toml:"qbittorrent"`
 	Portal      *Portal      `toml:"portal"`
+	Bloom       *Bloom       `toml:"bloom"`
 }
 
 type Compositor struct {
@@ -58,9 +59,11 @@ type Pavucontrol struct {
 }
 
 type Qt struct {
-	ThemeDir   string `toml:"theme_dir"`
-	ConfigHome string `toml:"config_home"`
-	DataHome   string `toml:"data_home"`
+	ThemeDir    string `toml:"theme_dir"`
+	ConfigHome  string `toml:"config_home"`
+	DataHome    string `toml:"data_home"`
+	WidgetStyle string `toml:"widget_style"`
+	IconTheme   string `toml:"icon_theme"`
 }
 
 type QBittorrent struct {
@@ -73,6 +76,10 @@ type Portal struct {
 	ConfigHome string `toml:"config_home"`
 	DataHome   string `toml:"data_home"`
 	ThemeName  string `toml:"theme_name"`
+}
+
+type Bloom struct {
+	ThemeDir string `toml:"theme_dir"`
 }
 
 func DefaultPath() string {
@@ -163,6 +170,12 @@ func Load(path string) (Config, error) {
 		if config.Qt.DataHome == "" {
 			config.Qt.DataHome = xdg("XDG_DATA_HOME", ".local/share")
 		}
+		if config.Qt.WidgetStyle == "" {
+			config.Qt.WidgetStyle = "Breeze"
+		}
+		if config.Qt.IconTheme == "" {
+			config.Qt.IconTheme = "Papirus-Dark"
+		}
 	}
 	if config.QBittorrent != nil {
 		if config.QBittorrent.Command == "" {
@@ -186,6 +199,9 @@ func Load(path string) (Config, error) {
 			config.Portal.ThemeName = "Caelestia-Portal"
 		}
 	}
+	if config.Bloom != nil && config.Bloom.ThemeDir == "" {
+		config.Bloom.ThemeDir = filepath.Join(xdg("XDG_CONFIG_HOME", ".config"), "spicetify", "Themes", "Bloom")
+	}
 	return config, nil
 }
 
@@ -195,7 +211,7 @@ func (c Config) Validate() error {
 	var problems []string
 	enabled := 0
 
-	needsScheme := c.Cursor != nil || c.GTK != nil
+	needsScheme := c.Cursor != nil || c.GTK != nil || c.Bloom != nil
 	if needsScheme {
 		if err := regularFile(c.Scheme.File, "scheme file"); err != nil {
 			problems = append(problems, err.Error())
@@ -263,6 +279,9 @@ func (c Config) Validate() error {
 		if err := commandAvailable("systemctl"); err != nil {
 			problems = append(problems, err.Error())
 		}
+	}
+	if c.Bloom != nil {
+		enabled++
 	}
 	if enabled == 0 {
 		problems = append(problems, "no integrations are enabled")

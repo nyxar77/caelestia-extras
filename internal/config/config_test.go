@@ -99,6 +99,12 @@ func TestLoadSetsQtDataHome(t *testing.T) {
 	if config.Qt.DataHome != os.Getenv("XDG_DATA_HOME") {
 		t.Fatalf("data home = %q", config.Qt.DataHome)
 	}
+	if config.Qt.WidgetStyle != "Breeze" {
+		t.Fatalf("widget style = %q", config.Qt.WidgetStyle)
+	}
+	if config.Qt.IconTheme != "Papirus-Dark" {
+		t.Fatalf("icon theme = %q", config.Qt.IconTheme)
+	}
 }
 
 func TestLoadSetsDefaultQBittorrentConfig(t *testing.T) {
@@ -115,6 +121,23 @@ func TestLoadSetsDefaultQBittorrentConfig(t *testing.T) {
 	want := filepath.Join(configHome, "qBittorrent", "qBittorrent.conf")
 	if config.QBittorrent.ConfigFile != want {
 		t.Fatalf("config file = %q, want %q", config.QBittorrent.ConfigFile, want)
+	}
+}
+
+func TestLoadSetsDefaultBloomThemeDir(t *testing.T) {
+	configHome := filepath.Join(t.TempDir(), "config")
+	t.Setenv("XDG_CONFIG_HOME", configHome)
+	path := filepath.Join(t.TempDir(), "config.toml")
+	if err := os.WriteFile(path, []byte("[bloom]\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	configuration, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(configHome, "spicetify", "Themes", "Bloom")
+	if configuration.Bloom.ThemeDir != want {
+		t.Fatalf("theme dir = %q, want %q", configuration.Bloom.ThemeDir, want)
 	}
 }
 
@@ -177,6 +200,16 @@ func TestValidateReportsMissingPortalServiceManager(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 	err := Config{Portal: &Portal{}}.Validate()
 	if err == nil || !strings.Contains(err.Error(), "systemctl") {
+		t.Fatalf("unexpected validation error: %v", err)
+	}
+}
+
+func TestValidateBloomRequiresScheme(t *testing.T) {
+	err := Config{
+		Scheme: Scheme{File: filepath.Join(t.TempDir(), "missing-scheme.json")},
+		Bloom:  &Bloom{},
+	}.Validate()
+	if err == nil || !strings.Contains(err.Error(), "scheme file") || strings.Contains(err.Error(), "no integrations") {
 		t.Fatalf("unexpected validation error: %v", err)
 	}
 }
