@@ -65,8 +65,8 @@ in
     xdg.dataFile = {
       "themes/${cfg.themeName}/gtk-3.0/base-dark.css".source = ../assets/manual/theme/base-dark.css;
       "themes/${cfg.themeName}/gtk-3.0/base-light.css".source = ../assets/manual/theme/base-light.css;
-      "themes/${cfg.themeName}/gtk-4.0/base-dark.css".source = ../assets/manual/theme/base-dark.css;
-      "themes/${cfg.themeName}/gtk-4.0/base-light.css".source = ../assets/manual/theme/base-light.css;
+      "themes/${cfg.themeName}/gtk-4.0/base-dark.css".source = ../assets/manual/theme/base-gtk4-dark.css;
+      "themes/${cfg.themeName}/gtk-4.0/base-light.css".source = ../assets/manual/theme/base-gtk4-light.css;
     };
   };
 }

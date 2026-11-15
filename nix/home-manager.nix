@@ -491,7 +491,12 @@ in
       be created because there are no generated files to watch.
     '';
     home = {
-      packages = [ runtimePackage ] ++ lib.optional cfg.localsend.enable localsendPackage;
+      packages =
+        [ runtimePackage ]
+        ++ lib.optional cfg.localsend.enable localsendPackage
+        ++ lib.optional (
+          cfg.gtk.enable && (cfg.gtk.darkTheme == "adw-gtk3-dark" || cfg.gtk.lightTheme == "adw-gtk3")
+        ) pkgs.adw-gtk3;
       activation = {
         caelestiaExtrasRetirePathUnits = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
