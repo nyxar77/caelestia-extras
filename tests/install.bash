@@ -101,7 +101,12 @@ grep -q '^\[ColorEffects:Disabled\]$' "$test_dir/config/caelestia-extras/managed
 grep -q '^\[Colors:Header\]\[Inactive\]$' "$test_dir/config/caelestia-extras/managed/templates/breeze-caelestia.colors"
 grep -q '^\[WM\]$' "$test_dir/config/caelestia-extras/managed/templates/breeze-caelestia.colors"
 test -L "$test_dir/config/systemd/user/caelestia-extras-watch.service"
+test -L "$test_dir/data/themes/Caelestia-Portal/gtk-3.0/base-dark.css"
+grep -q 'gtk-contained-dark.css' "$test_dir/data/themes/Caelestia-Portal/gtk-3.0/base-dark.css"
 test -L "$test_dir/data/themes/Caelestia-Portal/gtk-4.0/base-dark.css"
+! grep -q 'gtk-contained-dark.css' "$test_dir/data/themes/Caelestia-Portal/gtk-4.0/base-dark.css"
+test -L "$test_dir/data/themes/Caelestia-Portal/gtk-4.0/base-light.css"
+! grep -q 'gtk-contained.css' "$test_dir/data/themes/Caelestia-Portal/gtk-4.0/base-light.css"
 test -L "$test_dir/data/PrismLauncher/themes/caelestia-breeze/theme.json"
 test -L "$test_dir/data/PrismLauncher/themes/caelestia-breeze/themeStyle.css"
 

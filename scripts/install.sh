@@ -192,14 +192,18 @@ stage_managed \
   "$repo_dir/assets/manual/templates/qt6ct-caelestia.qss" \
   "templates/prismlauncher.qss"
 
-for version in gtk-3.0 gtk-4.0; do
-  stage_managed \
-    "$repo_dir/assets/manual/theme/base-dark.css" \
-    "theme/$version/base-dark.css"
-  stage_managed \
-    "$repo_dir/assets/manual/theme/base-light.css" \
-    "theme/$version/base-light.css"
-done
+stage_managed \
+  "$repo_dir/assets/manual/theme/base-dark.css" \
+  "theme/gtk-3.0/base-dark.css"
+stage_managed \
+  "$repo_dir/assets/manual/theme/base-light.css" \
+  "theme/gtk-3.0/base-light.css"
+stage_managed \
+  "$repo_dir/assets/manual/theme/base-gtk4-dark.css" \
+  "theme/gtk-4.0/base-dark.css"
+stage_managed \
+  "$repo_dir/assets/manual/theme/base-gtk4-light.css" \
+  "theme/gtk-4.0/base-light.css"
 
 render_staged \
   "$repo_dir/assets/manual/portal-qt/qt6ct.conf.in" \
