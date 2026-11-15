@@ -12,10 +12,12 @@ type Hyprland struct{}
 func (Hyprland) Name() string { return "hyprland" }
 
 func (Hyprland) ApplyCursor(cursor Cursor) error {
-	if err := run("hyprctl", "setcursor", cursor.Theme, strconv.Itoa(cursor.Size)); err != nil {
+	// Bump size briefly so Hyprland invalidates its cached cursor surface and
+	// re-uploads the active cursor shape immediately without waiting for hover.
+	if err := run("hyprctl", "setcursor", cursor.Theme, strconv.Itoa(cursor.Size+1)); err != nil {
 		return err
 	}
-	return run("hyprctl", "eval", "hl.dsp.force_renderer_reload()")
+	return run("hyprctl", "setcursor", cursor.Theme, strconv.Itoa(cursor.Size))
 }
 
 func (Hyprland) Validate() error {

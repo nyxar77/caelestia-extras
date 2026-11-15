@@ -49,61 +49,68 @@ func Sync(cursor config.Cursor, schemeFile string, backend compositor.Backend) e
 	defer lock.Close()
 
 	for range 8 {
-		active, err := scheme.Read(schemeFile)
+		applied, err := syncAttempt(cursor, schemeFile, lock, backend)
 		if err != nil {
 			return err
 		}
-		work, err := os.MkdirTemp(cursor.IconDir, "."+cursor.Theme+".")
-		if err != nil {
-			return err
+		if applied {
+			return nil
 		}
-		defer os.RemoveAll(work)
-		theme := filepath.Join(work, "theme")
-		if err := buildTheme(cursor, active, theme); err != nil {
-			return err
-		}
-		compiled := filepath.Join(work, "compiled")
-		if err := os.MkdirAll(compiled, 0o755); err != nil {
-			return err
-		}
-		if err := runQuiet("hyprcursor-util", "--create", theme, "--output", compiled); err != nil {
-			return err
-		}
-		generated := filepath.Join(compiled, "theme_"+cursor.Theme)
-		if _, err := os.Stat(filepath.Join(generated, "manifest.hl")); err != nil {
-			return fmt.Errorf("hyprcursor-util did not create %s", cursor.Theme)
-		}
-
-		if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
-			return err
-		}
-		current, err := scheme.Read(schemeFile)
-		if err != nil {
-			syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-			return err
-		}
-		if current != active {
-			syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-			continue
-		}
-		if err := install(cursor, generated); err != nil {
-			syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-			return err
-		}
-		if cursor.UpdateGTK {
-			if err := updateGTK(cursor); err != nil {
-				syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-				return err
-			}
-		}
-		if err := backend.ApplyCursor(compositor.Cursor{Theme: cursor.Theme, Size: cursor.Size}); err != nil {
-			syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-			return err
-		}
-		syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-		return nil
 	}
 	return errors.New("scheme changed too often; cursor was not applied")
+}
+
+func syncAttempt(cursor config.Cursor, schemeFile string, lock *os.File, backend compositor.Backend) (bool, error) {
+	active, err := scheme.Read(schemeFile)
+	if err != nil {
+		return false, err
+	}
+	work, err := os.MkdirTemp(cursor.IconDir, "."+cursor.Theme+".")
+	if err != nil {
+		return false, err
+	}
+	defer os.RemoveAll(work)
+
+	theme := filepath.Join(work, "theme")
+	if err := buildTheme(cursor, active, theme); err != nil {
+		return false, err
+	}
+	compiled := filepath.Join(work, "compiled")
+	if err := os.MkdirAll(compiled, 0o755); err != nil {
+		return false, err
+	}
+	if err := runQuiet("hyprcursor-util", "--create", theme, "--output", compiled); err != nil {
+		return false, err
+	}
+	generated := filepath.Join(compiled, "theme_"+cursor.Theme)
+	if _, err := os.Stat(filepath.Join(generated, "manifest.hl")); err != nil {
+		return false, fmt.Errorf("hyprcursor-util did not create %s", cursor.Theme)
+	}
+
+	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
+		return false, err
+	}
+	defer syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
+
+	current, err := scheme.Read(schemeFile)
+	if err != nil {
+		return false, err
+	}
+	if current != active {
+		return false, nil
+	}
+	if err := install(cursor, generated); err != nil {
+		return false, err
+	}
+	if cursor.UpdateGTK {
+		if err := updateGTK(cursor); err != nil {
+			return false, err
+		}
+	}
+	if err := backend.ApplyCursor(compositor.Cursor{Theme: cursor.Theme, Size: cursor.Size}); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func SyncXCursor(cursor config.Cursor, schemeFile string) error {
