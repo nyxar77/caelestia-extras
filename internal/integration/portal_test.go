@@ -29,7 +29,11 @@ esac
 	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
 	t.Setenv("TEST_SYSTEMCTL_LOG", logPath)
 
-	if err := reloadPortalServices(); err != nil {
+	if err := reloadPortalServices(
+		"xdg-desktop-portal-gtk.service",
+		"xdg-desktop-portal-gnome.service",
+		"xdg-desktop-portal-hyprland.service",
+	); err != nil {
 		t.Fatal(err)
 	}
 	data, err := os.ReadFile(logPath)
@@ -44,6 +48,67 @@ esac
 		if !strings.Contains(log, "try-restart --no-block "+service) {
 			t.Fatalf("available backend %s was not restarted:\n%s", service, log)
 		}
+	}
+}
+
+func TestSyncAndReloadPortalOnlyRestartsChangedBackends(t *testing.T) {
+	binDir := t.TempDir()
+	logPath := filepath.Join(t.TempDir(), "systemctl.log")
+	systemctl := filepath.Join(binDir, "systemctl")
+	write(t, systemctl, `#!/bin/sh
+set -eu
+printf '%s\n' "$*" >> "$TEST_SYSTEMCTL_LOG"
+case "$*" in
+  *show*) printf '%s\n' loaded ;;
+esac
+`)
+	if err := os.Chmod(systemctl, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv("TEST_SYSTEMCTL_LOG", logPath)
+
+	root := t.TempDir()
+	theme := filepath.Join(root, "theme")
+	configHome := filepath.Join(root, "config")
+	dataHome := filepath.Join(root, "data")
+	portal := config.Portal{ThemeDir: theme, ConfigHome: configHome, DataHome: dataHome, ThemeName: "Caelestia-Portal"}
+
+	write(t, filepath.Join(theme, "gtk-portal.css"), "portal-v1")
+	write(t, filepath.Join(theme, "qt-caelestia.conf"), "palette-v1")
+
+	if err := syncAndReloadPortal(portal, true); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(logPath, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// Repeating with unchanged files should not restart any portal service.
+	if err := syncAndReloadPortal(portal, true); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(data) != 0 {
+		t.Fatalf("unchanged portal files triggered restarts:\n%s", data)
+	}
+	// Updating only GTK CSS should not restart xdg-desktop-portal-hyprland.
+	write(t, filepath.Join(theme, "gtk-portal.css"), "portal-v2")
+	if err := syncAndReloadPortal(portal, true); err != nil {
+		t.Fatal(err)
+	}
+	data, err = os.ReadFile(logPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	log := string(data)
+	if strings.Contains(log, "xdg-desktop-portal-hyprland.service") {
+		t.Fatalf("GTK-only change restarted Hyprland portal:\n%s", log)
+	}
+	if !strings.Contains(log, "try-restart --no-block xdg-desktop-portal-gtk.service") {
+		t.Fatalf("GTK change did not restart GTK portal:\n%s", log)
 	}
 }
 

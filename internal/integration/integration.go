@@ -59,13 +59,7 @@ func SyncAll(configuration config.Config, includeXCursor, reloadPortals bool) er
 	}
 	if configuration.Portal != nil {
 		jobs = append(jobs, syncJob{"portal", func() error {
-			if err := SyncPortal(*configuration.Portal); err != nil {
-				return err
-			}
-			if reloadPortals {
-				return reloadPortalServices()
-			}
-			return nil
+			return syncAndReloadPortal(*configuration.Portal, reloadPortals)
 		}})
 	}
 	if configuration.Bloom != nil {
@@ -98,12 +92,25 @@ func SyncAll(configuration config.Config, includeXCursor, reloadPortals bool) er
 	return nil
 }
 
-func reloadPortalServices() error {
-	services := []string{
-		"xdg-desktop-portal-gtk.service",
-		"xdg-desktop-portal-gnome.service",
-		"xdg-desktop-portal-hyprland.service",
+func syncAndReloadPortal(portal config.Portal, reloadPortals bool) error {
+	changes, err := syncPortal(portal)
+	if err != nil {
+		return err
 	}
+	if !reloadPortals {
+		return nil
+	}
+	var services []string
+	if changes.gtk {
+		services = append(services, "xdg-desktop-portal-gtk.service", "xdg-desktop-portal-gnome.service")
+	}
+	if changes.qt {
+		services = append(services, "xdg-desktop-portal-hyprland.service")
+	}
+	return reloadPortalServices(services...)
+}
+
+func reloadPortalServices(services ...string) error {
 	for _, service := range services {
 		loadState, err := exec.Command(
 			"systemctl", "--user", "show", "--property=LoadState", "--value", service,
@@ -609,28 +616,44 @@ func setINIValue(lines []string, section, key, value string) ([]string, bool) {
 	return lines, true
 }
 
+type portalChanges struct {
+	gtk bool
+	qt  bool
+}
+
 func SyncPortal(portal config.Portal) error {
+	_, err := syncPortal(portal)
+	return err
+}
+
+func syncPortal(portal config.Portal) (portalChanges, error) {
+	var changes portalChanges
 	theme := portal.ThemeDir
 	portalCSS := filepath.Join(theme, "gtk-portal.css")
 	for _, version := range []string{"gtk-3.0", "gtk-4.0"} {
 		destination := filepath.Join(portal.DataHome, "themes", portal.ThemeName, version, "gtk.css")
 		if exists(portalCSS) {
-			if err := copyFile(portalCSS, destination); err != nil {
-				return err
+			changed, err := copyFileIfChanged(portalCSS, destination)
+			if err != nil {
+				return changes, err
 			}
+			changes.gtk = changes.gtk || changed
 		} else if exists(filepath.Join(theme, "gtk.css")) && sameFile(filepath.Join(theme, "gtk.css"), destination) {
 			if err := os.Remove(destination); err != nil && !os.IsNotExist(err) {
-				return err
+				return changes, err
 			}
+			changes.gtk = true
 		}
 	}
 
 	portalQt := filepath.Join(portal.ConfigHome, "portal-qt", "qt6ct")
 	if exists(filepath.Join(theme, "qt-caelestia.conf")) {
 		destination := filepath.Join(portalQt, "colors", "caelestia.conf")
-		if err := copyFile(filepath.Join(theme, "qt-caelestia.conf"), destination); err != nil {
-			return err
+		changed, err := copyFileIfChanged(filepath.Join(theme, "qt-caelestia.conf"), destination)
+		if err != nil {
+			return changes, err
 		}
+		changes.qt = changes.qt || changed
 	}
 
 	// Older releases installed a broad QWidget stylesheet here. It flattened
@@ -638,10 +661,12 @@ func SyncPortal(portal config.Portal) error {
 	// isolated integration-owned directory, so removing that stale override is
 	// safe; the generated palette and Breeze remain the only Qt theme owners.
 	portalQSS := filepath.Join(portalQt, "qss", "caelestia.qss")
-	if err := os.Remove(portalQSS); err != nil && !os.IsNotExist(err) {
-		return err
+	if err := os.Remove(portalQSS); err == nil {
+		changes.qt = true
+	} else if !os.IsNotExist(err) {
+		return changes, err
 	}
-	return nil
+	return changes, nil
 }
 
 func exists(path string) bool {
@@ -656,61 +681,51 @@ func sameFile(first, second string) bool {
 }
 
 func copyFile(source, destination string) error {
+	_, err := copyFileIfChanged(source, destination)
+	return err
+}
+
+func copyFileIfChanged(source, destination string) (bool, error) {
 	data, err := os.ReadFile(source)
 	if err != nil {
-		return err
+		return false, err
 	}
-	if current, readErr := os.ReadFile(destination); readErr == nil && bytes.Equal(current, data) {
-		return nil
-	}
-	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
-		return err
-	}
-	file, err := os.CreateTemp(filepath.Dir(destination), ".caelestia-extras.")
-	if err != nil {
-		return err
-	}
-	temporary := file.Name()
-	defer os.Remove(temporary)
-	if err := file.Chmod(0o644); err != nil {
-		file.Close()
-		return err
-	}
-	if _, err := file.Write(data); err != nil {
-		file.Close()
-		return err
-	}
-	if err := file.Close(); err != nil {
-		return err
-	}
-	return os.Rename(temporary, destination)
+	return writeFileIfChanged(destination, data)
 }
 
 func writeGeneratedFile(destination string, data []byte) error {
+	_, err := writeFileIfChanged(destination, data)
+	return err
+}
+
+func writeFileIfChanged(destination string, data []byte) (bool, error) {
 	if current, err := os.ReadFile(destination); err == nil && bytes.Equal(current, data) {
-		return nil
+		return false, nil
 	}
 	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
-		return err
+		return false, err
 	}
 	file, err := os.CreateTemp(filepath.Dir(destination), ".caelestia-extras.")
 	if err != nil {
-		return err
+		return false, err
 	}
 	temporary := file.Name()
 	defer os.Remove(temporary)
 	if err := file.Chmod(0o644); err != nil {
 		file.Close()
-		return err
+		return false, err
 	}
 	if _, err := file.Write(data); err != nil {
 		file.Close()
-		return err
+		return false, err
 	}
 	if err := file.Close(); err != nil {
-		return err
+		return false, err
 	}
-	return os.Rename(temporary, destination)
+	if err := os.Rename(temporary, destination); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func run(name string, arguments ...string) error {
